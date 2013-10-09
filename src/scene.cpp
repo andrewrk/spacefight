@@ -1,19 +1,15 @@
-#include <SDL2/SDL.h>
+#include "scene.h"
 
+#include <SDL2/SDL.h>
 #include <iostream>
 
-static void mainLoop() {
-    SDL_Event event;
-    while(SDL_WaitEvent(&event)) {
-        switch (event.type) {
-        case SDL_QUIT:
-            return;
-        }
-    }
+
+Scene::Scene()
+{
 }
 
-int main()
-{
+int Scene::start() {
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "Unable to initialize SDL" << std::endl;
         return 1;
@@ -37,3 +33,25 @@ int main()
     return 0;
 }
 
+void Scene::mainLoop() {
+
+    while (m_running) {
+        flushEvents();
+        std::cout << "heelloo\n";
+    }
+}
+
+void Scene::flushEvents() {
+    SDL_Event event;
+    while(SDL_PollEvent(&event)) {
+        switch (event.type) {
+        case SDL_KEYDOWN:
+            if (event.key.keysym.sym == SDLK_ESCAPE)
+                m_running = false;
+            break;
+        case SDL_QUIT:
+            m_running = false;
+            break;
+        }
+    }
+}
