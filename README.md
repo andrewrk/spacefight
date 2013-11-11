@@ -6,8 +6,9 @@ vaporware 3d space dogfighting simulator game
 
 Dependencies:
 
- * SDL2
+ * libsdl2-dev
  * libglm-dev
+ * libassimp-dev
  * qmake
 
-Build with Qt Creator
+Then `qmake spacefight.pro && make && ./spacefight`

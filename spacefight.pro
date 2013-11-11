@@ -9,12 +9,14 @@ QMAKE_CXXFLAGS += -std=c++11
 SOURCES += \
     src/scene.cpp \
     src/main.cpp \
-    src/shader.cpp
+    src/shader.cpp \
+    src/model.cpp
 
 
 HEADERS += \
     src/scene.h \
-    src/shader.h
+    src/shader.h \
+    src/model.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2
@@ -22,6 +24,10 @@ unix: PKGCONFIG += sdl2
 unix: PKGCONFIG += glew
 
 unix: PKGCONFIG += gl
+
+unix: PKGCONFIG += assimp
+
+
 
 OTHER_FILES += \
     src/shaders/basic.frag \

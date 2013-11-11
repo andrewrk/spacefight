@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 
 #include "shader.h"
+#include "model.h"
+
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 
@@ -27,6 +29,8 @@ private:
     glm::mat4 mMvp;
 
     GLuint mShaderMvp;
+
+    Model *mMonkeyModel;
 
     void flushEvents();
     void draw();

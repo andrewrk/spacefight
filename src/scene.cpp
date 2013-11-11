@@ -63,10 +63,14 @@ Scene::Scene()
     mMvp = mProjection * mView * mModel;
 
     mShaderMvp = mShader->uniformId("MVP");
+
+    mMonkeyModel = new Model("models/monkey.blend");
 }
 
 Scene::~Scene()
 {
+
+    delete mMonkeyModel;
     delete mShader;
 
 
