@@ -13,6 +13,8 @@ public:
     void bind();
     void unbind();
 
+    GLuint uniformId(const char *name);
+
 private:
     GLuint mProgramId;
     GLuint mVertexId;
