@@ -18,7 +18,7 @@ Scene::Scene()
     atexit(SDL_Quit);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -33,6 +33,7 @@ Scene::Scene()
 
     mContext = SDL_GL_CreateContext(mWindow);
 
+    glewExperimental = GL_TRUE;
     GLenum status = glewInit();
     if (status != GLEW_OK) {
         std::cerr << "GLEW error:" << glewGetErrorString(status) << "\n";
@@ -71,11 +72,15 @@ int Scene::start() {
 }
 
 void Scene::draw() {
+    shader->bind();
+
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDisableVertexAttribArray(0);
+
+    shader->unbind();
 }
 
 void Scene::flushEvents() {

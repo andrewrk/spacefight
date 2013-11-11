@@ -1,9 +1,8 @@
-#version 130
+#version 330 core
 
-in vec3 position;
-uniform mat4x4 modelviewProjection;
+layout (location = 0) in vec3 in_Position;
 
 void main()
 {
-    gl_Position = modelviewProjection * vec4(position, 1.0);
+    gl_Position = vec4(in_Position, 1.0);
 }
