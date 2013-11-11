@@ -1,6 +1,7 @@
 #include "shader.h"
 
 #include <sstream>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <cassert>

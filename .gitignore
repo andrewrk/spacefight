@@ -2,3 +2,4 @@
 /spacefight
 *.pro.user
 Makefile
+bin

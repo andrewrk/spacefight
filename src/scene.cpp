@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include <iostream>
 
+
+
 static const GLfloat vertex_buffer_data[] = {
     -1.0f, -1.0f, 0.0f,
     1.0f, -1.0f, 0.0f,
@@ -11,14 +13,14 @@ static const GLfloat vertex_buffer_data[] = {
 
 Scene::Scene()
 {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
         std::cerr << "Unable to initialize SDL\n";
         exit(1);
     }
     atexit(SDL_Quit);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -32,6 +34,8 @@ Scene::Scene()
     }
 
     mContext = SDL_GL_CreateContext(mWindow);
+
+    glewExperimental = true; //if not segfault
 
     GLenum status = glewInit();
     if (status != GLEW_OK) {
@@ -50,6 +54,11 @@ Scene::Scene()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
 
     shader = new Shader("src/shaders/basic.vert", "src/shaders/basic.frag");
+
+    for(int i(0); i < SDL_NumJoysticks(); i++)
+    {
+        std::cout << "Joystick name: " << SDL_JoystickNameForIndex(i);
+    }
 }
 
 Scene::~Scene()
@@ -62,15 +71,21 @@ Scene::~Scene()
 }
 
 int Scene::start() {
-    while (mRunning) {
-        flushEvents();
+
+    mInput.initJoystick();
+
+    while(mInput.checkRunning())
+    {
+        mInput.update();
+        //flushEvents();
         draw();
         SDL_GL_SwapWindow(mWindow);
     }
     return 0;
 }
 
-void Scene::draw() {
+void Scene::draw()
+{
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);

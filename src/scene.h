@@ -5,6 +5,8 @@
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 
+#include "Input.h"
+
 class Scene
 {
 public:
@@ -21,6 +23,8 @@ private:
 
     void flushEvents();
     void draw();
+
+    Input mInput;
 
 };
 

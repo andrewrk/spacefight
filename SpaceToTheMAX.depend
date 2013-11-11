@@ -1,0 +1,34 @@
+# depslib dependency file v1.0
+1381363359 source:/home/labil/openGL/SpaceToTheMAX/main.cpp
+	"scene.h"
+
+1384202725 /home/labil/openGL/SpaceToTheMAX/scene.h
+	"shader.h"
+	<SDL2/SDL.h>
+	<GL/glew.h>
+	"Input.h"
+
+1384198195 /home/labil/openGL/SpaceToTheMAX/shader.h
+	<string>
+	<GL/glew.h>
+
+1384203900 source:/home/labil/openGL/SpaceToTheMAX/scene.cpp
+	"scene.h"
+	<glm/glm.hpp>
+	<iostream>
+
+1384198767 source:/home/labil/openGL/SpaceToTheMAX/shader.cpp
+	"shader.h"
+	<sstream>
+	<cstdlib>
+	<iostream>
+	<fstream>
+	<cassert>
+
+1384205758 /home/labil/openGL/SpaceToTheMAX/include/Input.h
+	<SDL2/SDL.h>
+	<iostream>
+
+1384203526 source:/home/labil/openGL/SpaceToTheMAX/src/Input.cpp
+	"Input.h"
+
