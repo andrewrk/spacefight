@@ -10,13 +10,15 @@ SOURCES += \
     src/scene.cpp \
     src/main.cpp \
     src/shader.cpp \
-    src/model.cpp
+    src/model.cpp \
+    src/Input.cpp
 
 
 HEADERS += \
     src/scene.h \
     src/shader.h \
-    src/model.h
+    src/model.h \
+    src/Input.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2
