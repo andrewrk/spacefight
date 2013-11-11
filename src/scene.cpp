@@ -1,6 +1,6 @@
 #include "scene.h"
 
-#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
 
@@ -25,8 +25,10 @@ Scene::Scene()
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
+    int width = 1366;
+    int height = 768;
     mWindow = SDL_CreateWindow("Space Fight 3D!",
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1366, 768,
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
         SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_OPENGL);
     if (!mWindow) {
         std::cerr << "Unable to create window\n";
@@ -35,8 +37,7 @@ Scene::Scene()
 
     mContext = SDL_GL_CreateContext(mWindow);
 
-    glewExperimental = true; //if not segfault
-
+    glewExperimental = GL_TRUE;
     GLenum status = glewInit();
     if (status != GLEW_OK) {
         std::cerr << "GLEW error:" << glewGetErrorString(status) << "\n";
@@ -53,17 +54,31 @@ Scene::Scene()
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
 
-    shader = new Shader("src/shaders/basic.vert", "src/shaders/basic.frag");
-
     for(int i(0); i < SDL_NumJoysticks(); i++)
     {
         std::cout << "Joystick name: " << SDL_JoystickNameForIndex(i);
     }
+
+    mShader = new Shader("src/shaders/basic.vert", "src/shaders/basic.frag");
+
+    mProjection = glm::perspective(60.0, width / (double)height, 0.1, 100.0);
+    mView = glm::lookAt(
+                glm::vec3(4.0, 3.0, 3.0),
+                glm::vec3(0.0, 0.0, 0.0),
+                glm::vec3(0.0, 1.0, 0.0));
+    mModel = glm::mat4(1.0);
+    mMvp = mProjection * mView * mModel;
+
+    mShaderMvp = mShader->uniformId("MVP");
+
+    mMonkeyModel = new Model("models/monkey.blend");
 }
 
 Scene::~Scene()
 {
-    delete shader;
+
+    delete mMonkeyModel;
+    delete mShader;
 
 
     SDL_GL_DeleteContext(mContext);
@@ -84,13 +99,20 @@ int Scene::start() {
     return 0;
 }
 
+
 void Scene::draw()
 {
+    mShader->bind();
+
+    glUniformMatrix4fv(mShaderMvp, 1, GL_FALSE, &mMvp[0][0]);
+
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDisableVertexAttribArray(0);
+
+    mShader->unbind();
 }
 
 void Scene::flushEvents() {
