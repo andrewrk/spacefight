@@ -21,7 +21,6 @@ public:
 private:
     bool mRunning = true;
     GLuint mVertexArrayId;
-    GLuint mVertexBuffer;
     SDL_GLContext mContext;
     SDL_Window *mWindow;
     Shader *mShader;

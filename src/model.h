@@ -5,14 +5,23 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+
+#include <GL/glew.h>
+
 class Model
 {
 public:
     Model(const std::string &filename);
 
+    void draw();
+
 private:
 
-    const aiScene *mScene;
+
+    std::vector<GLuint> mVertexBuffers;
+    std::vector<unsigned int> mVertexCounts;
+
+    void importNode(aiNode *node);
 };
 
 #endif // MODEL_H

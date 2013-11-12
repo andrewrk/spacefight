@@ -93,4 +93,3 @@ GLuint Shader::uniformId(const char *name)
     return glGetUniformLocation(mProgramId, name);
 }
 
-

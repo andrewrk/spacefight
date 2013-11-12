@@ -3,14 +3,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
-
-
-static const GLfloat vertex_buffer_data[] = {
-    -1.0f, -1.0f, 0.0f,
-    1.0f, -1.0f, 0.0f,
-    0.0f, 1.0f, 0.0f,
-};
-
 Scene::Scene()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
@@ -50,9 +42,6 @@ Scene::Scene()
     glGenVertexArrays(1, &mVertexArrayId);
     glBindVertexArray(mVertexArrayId);
 
-    glGenBuffers(1, &mVertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
 
     for(int i(0); i < SDL_NumJoysticks(); i++)
     {
@@ -71,7 +60,9 @@ Scene::Scene()
 
     mShaderMvp = mShader->uniformId("MVP");
 
-    mMonkeyModel = new Model("models/monkey.blend");
+    mMonkeyModel = new Model("models/monkey.obj");
+
+
 }
 
 Scene::~Scene()
@@ -103,14 +94,9 @@ int Scene::start() {
 void Scene::draw()
 {
     mShader->bind();
-
     glUniformMatrix4fv(mShaderMvp, 1, GL_FALSE, &mMvp[0][0]);
 
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glDisableVertexAttribArray(0);
+    mMonkeyModel->draw();
 
     mShader->unbind();
 }
