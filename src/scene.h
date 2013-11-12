@@ -20,16 +20,13 @@ public:
     int start();
 private:
     bool mRunning = true;
-    GLuint mVertexArrayId;
     SDL_GLContext mContext;
     SDL_Window *mWindow;
-    Shader *mShader;
     glm::mat4 mProjection;
     glm::mat4 mView;
     glm::mat4 mModel;
     glm::mat4 mMvp;
 
-    GLuint mShaderMvp;
 
     Model *mMonkeyModel;
 

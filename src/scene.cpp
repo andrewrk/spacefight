@@ -39,8 +39,10 @@ Scene::Scene()
     // set buffer swap with monitor's vertical refresh rate
     SDL_GL_SetSwapInterval(1);
 
-    glGenVertexArrays(1, &mVertexArrayId);
-    glBindVertexArray(mVertexArrayId);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
+
 
 
     for(int i(0); i < SDL_NumJoysticks(); i++)
@@ -48,17 +50,15 @@ Scene::Scene()
         std::cout << "Joystick name: " << SDL_JoystickNameForIndex(i);
     }
 
-    mShader = new Shader("src/shaders/basic.vert", "src/shaders/basic.frag");
 
     mProjection = glm::perspective(60.0, width / (double)height, 0.1, 100.0);
     mView = glm::lookAt(
-                glm::vec3(4.0, 3.0, 3.0),
+                glm::vec3(0.0, -4.0, 0.0),
                 glm::vec3(0.0, 0.0, 0.0),
-                glm::vec3(0.0, 1.0, 0.0));
+                glm::vec3(0.0, 0.0, 1.0));
     mModel = glm::mat4(1.0);
     mMvp = mProjection * mView * mModel;
 
-    mShaderMvp = mShader->uniformId("MVP");
 
     mMonkeyModel = new Model("models/monkey.obj");
 
@@ -69,7 +69,6 @@ Scene::~Scene()
 {
 
     delete mMonkeyModel;
-    delete mShader;
 
 
     SDL_GL_DeleteContext(mContext);
@@ -83,7 +82,6 @@ int Scene::start() {
     while(mInput.checkRunning())
     {
         mInput.update();
-        //flushEvents();
         draw();
         SDL_GL_SwapWindow(mWindow);
     }
@@ -93,12 +91,7 @@ int Scene::start() {
 
 void Scene::draw()
 {
-    mShader->bind();
-    glUniformMatrix4fv(mShaderMvp, 1, GL_FALSE, &mMvp[0][0]);
-
-    mMonkeyModel->draw();
-
-    mShader->unbind();
+    mMonkeyModel->draw(mMvp);
 }
 
 void Scene::flushEvents() {

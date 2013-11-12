@@ -93,3 +93,8 @@ GLuint Shader::uniformId(const char *name)
     return glGetUniformLocation(mProgramId, name);
 }
 
+void Shader::bindAttribLocation(GLuint index, const std::string &name)
+{
+    glBindAttribLocation(mProgramId, index, name.c_str());
+}
+
