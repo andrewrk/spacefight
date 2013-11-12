@@ -11,8 +11,6 @@
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 
-#include "Input.h"
-
 class Scene
 {
 public:
@@ -29,10 +27,12 @@ private:
 
     Model *mMonkeyModel;
 
+
+    std::vector<SDL_Joystick*> mJoysticks;
+
     void flushEvents();
     void draw();
-
-    Input mInput;
+    void initJoystick();
 
 };
 

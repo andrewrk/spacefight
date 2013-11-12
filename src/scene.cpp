@@ -46,12 +46,6 @@ Scene::Scene()
 
 
 
-    for(int i(0); i < SDL_NumJoysticks(); i++)
-    {
-        std::cout << "Joystick name: " << SDL_JoystickNameForIndex(i);
-    }
-
-
     mRenderContext.projection = glm::perspective(60.0, width / (double)height, 0.1, 100.0);
     mRenderContext.view = glm::lookAt(
                 glm::vec3(0.0, -4.0, 0.0),
@@ -82,11 +76,11 @@ Scene::~Scene()
 
 int Scene::start() {
 
-    mInput.initJoystick();
+    initJoystick();
 
-    while(mInput.checkRunning())
+    while(mRunning)
     {
-        mInput.update();
+        flushEvents();
         draw();
         SDL_GL_SwapWindow(mWindow);
     }
@@ -110,6 +104,29 @@ void Scene::flushEvents() {
         case SDL_QUIT:
             mRunning = false;
             break;
+        case SDL_JOYBUTTONDOWN:
+            std::cout << "joy button down";
+            break;
+        case SDL_JOYAXISMOTION:
+            std::cout << "axis: " << event.jaxis.axis << " value: " << event.jaxis.value << "\n";
+            break;
         }
     }
+}
+
+void Scene::initJoystick()
+{
+    int joystickCount = SDL_NumJoysticks();
+    for(int i = 0; i < joystickCount; i++)
+    {
+        std::cout << "Joystick name: " << SDL_JoystickNameForIndex(i) << "\n";
+        SDL_Joystick *joystick = SDL_JoystickOpen(i);
+        if (!joystick) {
+            std::cerr << "Unable to open joystick: " << SDL_GetError() << "\n";
+        } else {
+            mJoysticks.push_back(joystick);
+        }
+    }
+
+    SDL_JoystickEventState(SDL_ENABLE);
 }
