@@ -88,13 +88,13 @@ void Shader::unbind()
     glUseProgram(0);
 }
 
-GLuint Shader::uniformId(const char *name)
+GLuint Shader::uniformId(const std::string &name)
 {
-    return glGetUniformLocation(mProgramId, name);
+    return glGetUniformLocation(mProgramId, name.c_str());
 }
 
-void Shader::bindAttribLocation(GLuint index, const std::string &name)
+GLint Shader::attribLocation(const std::string &name)
 {
-    glBindAttribLocation(mProgramId, index, name.c_str());
+    return glGetAttribLocation(mProgramId, name.c_str());
 }
 

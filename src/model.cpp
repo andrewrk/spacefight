@@ -4,7 +4,8 @@
 
 #include <iostream>
 
-Model::Model(const std::string &filename)
+Model::Model(const std::string &filename, const RenderContext &renderContext) :
+    mRenderContext(renderContext)
 {
     Assimp::Importer importer;
 
@@ -18,35 +19,64 @@ Model::Model(const std::string &filename)
     assert(scene);
 
     mShader = ShaderManager::getShader("basic");
-    mShader->bindAttribLocation(0, "VertexPosition");
 
     mShaderMvp = mShader->uniformId("MVP");
+    mShaderLightPosition = mShader->uniformId("LightPosition");
+    mShaderDiffuseReflectivity = mShader->uniformId("DiffuseReflectivity");
+    mShaderLightSourceIntensity = mShader->uniformId("LightSourceIntensity");
+    mShaderModelViewMatrix = mShader->uniformId("ModelViewMatrix");
+    mShaderNormalMatrix = mShader->uniformId("NormalMatrix");
+    mShaderProjectionMatrix = mShader->uniformId("ProjectionMatrix");
 
-    mVertexBuffers.resize(scene->mNumMeshes);
-    mVertexCounts.resize(mVertexBuffers.size());
-    mVertexArrays.resize(mVertexBuffers.size());
-    glGenBuffers(mVertexBuffers.size(), &mVertexBuffers[0]);
+    mVertexPositionBuffers.resize(scene->mNumMeshes);
+    mVertexNormalBuffers.resize(mVertexPositionBuffers.size());
+    mVertexCounts.resize(mVertexPositionBuffers.size());
+    mVertexArrays.resize(mVertexPositionBuffers.size());
+    glGenBuffers(mVertexPositionBuffers.size(), &mVertexPositionBuffers[0]);
+    glGenBuffers(mVertexNormalBuffers.size(), &mVertexNormalBuffers[0]);
     glGenVertexArrays(mVertexArrays.size(), &mVertexArrays[0]);
-    for (unsigned int i = 0; i < mVertexBuffers.size(); i += 1) {
+
+    GLint vertexPositionIndex = mShader->attribLocation("VertexPosition");
+    GLint vertexNormalIndex = mShader->attribLocation("Normal");
+    for (unsigned int i = 0; i < mVertexPositionBuffers.size(); i += 1) {
         aiMesh *mesh = scene->mMeshes[i];
         mVertexCounts[i] = mesh->mNumVertices;
 
-        GLuint vertexBufferIndex = mVertexBuffers[i];
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBufferIndex);
+        GLuint positionBufferIndex = mVertexPositionBuffers[i];
+        glBindBuffer(GL_ARRAY_BUFFER, positionBufferIndex);
         glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GL_FLOAT), mesh->mVertices, GL_STATIC_DRAW);
+
+        GLuint normalBufferIndex = mVertexNormalBuffers[i];
+        glBindBuffer(GL_ARRAY_BUFFER, normalBufferIndex);
+        glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GL_FLOAT), mesh->mNormals, GL_STATIC_DRAW);
 
         GLuint vertexArrayIndex = mVertexArrays[i];
         glBindVertexArray(vertexArrayIndex);
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBufferIndex);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+        glEnableVertexAttribArray(vertexPositionIndex);
+        glBindBuffer(GL_ARRAY_BUFFER, positionBufferIndex);
+        glVertexAttribPointer(vertexPositionIndex, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+        glEnableVertexAttribArray(vertexNormalIndex);
+        glBindBuffer(GL_ARRAY_BUFFER, normalBufferIndex);
+        glVertexAttribPointer(vertexNormalIndex, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     }
 }
 
-void Model::draw(const glm::mat4 &mvp)
+void Model::draw()
 {
     mShader->bind();
-    glUniformMatrix4fv(mShaderMvp, 1, GL_FALSE, &mvp[0][0]);
+    glUniformMatrix4fv(mShaderMvp, 1, GL_FALSE, &mRenderContext.mvp[0][0]);
+    glUniformMatrix4fv(mShaderModelViewMatrix, 1, GL_FALSE, &mRenderContext.modelView[0][0]);
+    glUniformMatrix4fv(mShaderProjectionMatrix, 1, GL_FALSE, &mRenderContext.projection[0][0]);
+
+    glUniform4fv(mShaderLightPosition, 1, &mRenderContext.lightPosition[0]);
+
+    glUniform3fv(mShaderDiffuseReflectivity, 1, &mRenderContext.diffuseReflectivity[0]);
+    glUniform3fv(mShaderLightSourceIntensity, 1, &mRenderContext.lightSourceIntensity[0]);
+
+    glUniformMatrix3fv(mShaderNormalMatrix, 1, GL_FALSE, &mRenderContext.normal[0][0]);
+
 
     for (unsigned int i = 0; i < mVertexArrays.size(); i += 1) {
         GLuint vaoHandle = mVertexArrays[i];

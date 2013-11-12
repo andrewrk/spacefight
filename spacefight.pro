@@ -20,7 +20,8 @@ HEADERS += \
     src/shader.h \
     src/model.h \
     src/Input.h \
-    src/shadermanager.h
+    src/shadermanager.h \
+    src/rendercontext.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2

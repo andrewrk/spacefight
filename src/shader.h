@@ -13,8 +13,8 @@ public:
     void bind();
     void unbind();
 
-    GLuint uniformId(const char *name);
-    void bindAttribLocation(GLuint index, const std::string &name);
+    GLuint uniformId(const std::string &name);
+    GLint attribLocation(const std::string &name);
 
 private:
     GLuint mProgramId;

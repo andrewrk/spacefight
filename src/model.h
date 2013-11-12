@@ -2,6 +2,7 @@
 #define MODEL_H
 
 #include "shader.h"
+#include "rendercontext.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -14,17 +15,27 @@
 class Model
 {
 public:
-    Model(const std::string &filename);
+    Model(const std::string &filename, const RenderContext &renderContext);
 
-    void draw(const glm::mat4 &mvp);
+    void draw();
 
 private:
     Shader *mShader;
     GLuint mShaderMvp;
+    GLuint mShaderLightPosition;
+    GLuint mShaderDiffuseReflectivity;
+    GLuint mShaderLightSourceIntensity;
+    GLuint mShaderModelViewMatrix;
+    GLuint mShaderNormalMatrix;
+    GLuint mShaderProjectionMatrix;
 
-    std::vector<GLuint> mVertexBuffers;
+
+    std::vector<GLuint> mVertexPositionBuffers;
+    std::vector<GLuint> mVertexNormalBuffers;
     std::vector<GLuint> mVertexArrays;
     std::vector<unsigned int> mVertexCounts;
+
+    const RenderContext &mRenderContext;
 
     void importNode(aiNode *node);
 };

@@ -6,6 +6,7 @@
 
 #include "shader.h"
 #include "model.h"
+#include "rendercontext.h"
 
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
@@ -22,10 +23,8 @@ private:
     bool mRunning = true;
     SDL_GLContext mContext;
     SDL_Window *mWindow;
-    glm::mat4 mProjection;
-    glm::mat4 mView;
-    glm::mat4 mModel;
-    glm::mat4 mMvp;
+
+    RenderContext mRenderContext;
 
 
     Model *mMonkeyModel;

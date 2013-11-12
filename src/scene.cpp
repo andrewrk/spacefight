@@ -1,6 +1,7 @@
 #include "scene.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 #include <iostream>
 
 Scene::Scene()
@@ -51,16 +52,20 @@ Scene::Scene()
     }
 
 
-    mProjection = glm::perspective(60.0, width / (double)height, 0.1, 100.0);
-    mView = glm::lookAt(
+    mRenderContext.projection = glm::perspective(60.0, width / (double)height, 0.1, 100.0);
+    mRenderContext.view = glm::lookAt(
                 glm::vec3(0.0, -4.0, 0.0),
                 glm::vec3(0.0, 0.0, 0.0),
                 glm::vec3(0.0, 0.0, 1.0));
-    mModel = glm::mat4(1.0);
-    mMvp = mProjection * mView * mModel;
+    mRenderContext.model = glm::mat4(1.0);
+    mRenderContext.modelView = mRenderContext.view * mRenderContext.model;
+    mRenderContext.mvp = mRenderContext.projection * mRenderContext.modelView;
+    mRenderContext.normal = glm::inverseTranspose(glm::mat3(mRenderContext.modelView));
+    mRenderContext.lightPosition = glm::vec4(1.0, -3.0, 0.0, 1.0);
+    mRenderContext.lightSourceIntensity = glm::vec3(0.8, 0.8, 0.8);
+    mRenderContext.diffuseReflectivity = glm::vec3(0.8, 0.5, 0.5);
 
-
-    mMonkeyModel = new Model("models/monkey.obj");
+    mMonkeyModel = new Model("models/monkey.obj", mRenderContext);
 
 
 }
@@ -91,7 +96,7 @@ int Scene::start() {
 
 void Scene::draw()
 {
-    mMonkeyModel->draw(mMvp);
+    mMonkeyModel->draw();
 }
 
 void Scene::flushEvents() {

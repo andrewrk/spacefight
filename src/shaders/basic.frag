@@ -1,8 +1,9 @@
 #version 330 core
 
-out vec3 out_Color;
+in vec3 LightIntensity;
+out vec4 FragColor;
 
 void main()
 {
-    out_Color = vec3(1, 0, 0);
+    FragColor = vec4(LightIntensity, 1.0);
 }
