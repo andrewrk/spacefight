@@ -53,13 +53,15 @@ Model::Model(const std::string &filename, const RenderContext &renderContext) :
         GLuint vertexArrayIndex = mVertexArrays[i];
         glBindVertexArray(vertexArrayIndex);
 
-        glEnableVertexAttribArray(vertexPositionIndex);
-        glBindBuffer(GL_ARRAY_BUFFER, positionBufferIndex);
-        glVertexAttribPointer(vertexPositionIndex, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
-        glEnableVertexAttribArray(vertexNormalIndex);
-        glBindBuffer(GL_ARRAY_BUFFER, normalBufferIndex);
-        glVertexAttribPointer(vertexNormalIndex, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+            glBindBuffer(GL_ARRAY_BUFFER, positionBufferIndex);
+            glEnableVertexAttribArray(vertexPositionIndex);
+            glVertexAttribPointer(vertexPositionIndex, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+
+            glBindBuffer(GL_ARRAY_BUFFER, normalBufferIndex);
+            glEnableVertexAttribArray(vertexNormalIndex);
+            glVertexAttribPointer(vertexNormalIndex, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     }
 }
 

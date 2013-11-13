@@ -11,7 +11,8 @@ SOURCES += \
     src/main.cpp \
     src/shader.cpp \
     src/model.cpp \
-    src/shadermanager.cpp
+    src/shadermanager.cpp \
+    src/texture.cpp
 
 
 HEADERS += \
@@ -19,7 +20,8 @@ HEADERS += \
     src/shader.h \
     src/model.h \
     src/shadermanager.h \
-    src/rendercontext.h
+    src/rendercontext.h \
+    src/texture.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2
@@ -29,6 +31,8 @@ unix: PKGCONFIG += glew
 unix: PKGCONFIG += gl
 
 unix: PKGCONFIG += assimp
+
+unix: LIBS += -lSDL2_image
 
 
 
