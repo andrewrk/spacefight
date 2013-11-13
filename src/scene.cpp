@@ -45,12 +45,17 @@ Scene::Scene()
         exit(1);
     }
 
+    GLenum err = glGetError();
+    // we expect to maybe get invalid enum due to glewExperimental
+    assert(err == GL_INVALID_ENUM || err == GL_NO_ERROR);
+
     // set buffer swap with monitor's vertical refresh rate
     SDL_GL_SetSwapInterval(1);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
+
 
     mCameraDirection = glm::vec3(0, 1.0, 0);
 
@@ -107,19 +112,24 @@ void Scene::update(double dx)
         val = SDL_JoystickGetAxis(joystick, 2);
         joyZ += (double) val / (double) INT16_MAX;
     }
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
+    if (state[SDL_SCANCODE_LEFT]) joyX -= 1.0;
+    if (state[SDL_SCANCODE_RIGHT]) joyX += 1.0;
+    if (state[SDL_SCANCODE_UP]) joyZ -= 1.0;
+    if (state[SDL_SCANCODE_DOWN]) joyZ += 1.0;
 
     mCameraDistance += joyZ * CAMERA_SPEED * dx;
 
     glm::vec3 eye = mCameraDirection * mCameraDistance;
 
-    double angle = atan2(eye[1], eye[0]);
-    std::cout << "joyX: " << joyX << " eyeX: " << eye[0] << " eyeY: " << eye[1] << " angle: " << angle << "\n";
+    double angle = atan2(mCameraDirection[1], mCameraDirection[0]);
     angle += joyX * CAMERA_ROTATION_SPEED * dx;
 
     eye[0] = mCameraDistance * cos(angle);
     eye[1] = mCameraDistance * sin(angle);
 
     mCameraDirection = glm::normalize(eye);
+
 
     mRenderContext.view = glm::lookAt(
                 eye,

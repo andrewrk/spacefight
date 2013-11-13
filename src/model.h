@@ -33,7 +33,8 @@ private:
     std::vector<GLuint> mVertexPositionBuffers;
     std::vector<GLuint> mVertexNormalBuffers;
     std::vector<GLuint> mVertexArrays;
-    std::vector<unsigned int> mVertexCounts;
+    std::vector<GLuint> mVertexIndexBuffers;
+    std::vector<unsigned int> mIndexCounts;
 
     const RenderContext &mRenderContext;
 

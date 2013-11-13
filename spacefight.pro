@@ -35,7 +35,7 @@ unix: PKGCONFIG += assimp
 unix: LIBS += -lSDL2_image
 
 
-
 OTHER_FILES += \
     src/shaders/basic.frag \
     src/shaders/basic.vert
+
