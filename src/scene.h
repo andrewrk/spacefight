@@ -11,6 +11,8 @@
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 
+#include "texture.h"
+
 class Scene
 {
 public:
@@ -26,6 +28,8 @@ private:
 
 
     Model *mMonkeyModel;
+
+    Texture mTexture;
 
 
     std::vector<SDL_Joystick*> mJoysticks;

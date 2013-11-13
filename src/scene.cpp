@@ -12,7 +12,7 @@
 const double CAMERA_SPEED = 0.02;
 const double CAMERA_ROTATION_SPEED = 0.02;
 
-Scene::Scene()
+Scene::Scene() : mTexture("assets/test.png")
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
         std::cerr << "Unable to initialize SDL\n";
@@ -83,6 +83,8 @@ Scene::~Scene()
 int Scene::start() {
 
     initJoystick();
+
+    mTexture.load();
 
     while(mRunning)
     {
