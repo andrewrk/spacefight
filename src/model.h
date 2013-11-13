@@ -4,6 +4,8 @@
 #include "shader.h"
 #include "rendercontext.h"
 
+#include <memory>
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -21,13 +23,14 @@ public:
 
 private:
     Shader *mShader;
-    GLuint mShaderMvp;
-    GLuint mShaderLightPosition;
-    GLuint mShaderDiffuseReflectivity;
-    GLuint mShaderLightSourceIntensity;
+
+    std::unique_ptr<Shader::UniformBlock> mLightBlock;
+    std::unique_ptr<Shader::UniformBlock> mMaterialBlock;
+
     GLuint mShaderModelViewMatrix;
     GLuint mShaderNormalMatrix;
     GLuint mShaderProjectionMatrix;
+    GLuint mShaderMvp;
 
 
     std::vector<GLuint> mVertexPositionBuffers;

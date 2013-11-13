@@ -1,8 +1,37 @@
 #include "model.h"
 #include "shadermanager.h"
 #include <cassert>
-
 #include <iostream>
+
+static const GLchar *LIGHT_BLOCK_FIELDS[] = {
+    "Position",
+    "La",
+    "Ld",
+    "Ls",
+    NULL,
+};
+
+enum LightBlockField {
+    LIGHT_POSITION,
+    LIGHT_LA,
+    LIGHT_LD,
+    LIGHT_LS
+};
+
+static const GLchar *MATERIAL_BLOCK_FIELDS[] = {
+    "Ka",
+    "Kd",
+    "Ks",
+    "Shininess",
+    NULL,
+};
+
+enum MaterialBlock {
+    MATERIAL_KA,
+    MATERIAL_KD,
+    MATERIAL_KS,
+    MATERIAL_SHININESS
+};
 
 Model::Model(const std::string &filename, const RenderContext &renderContext) :
     mRenderContext(renderContext)
@@ -20,13 +49,14 @@ Model::Model(const std::string &filename, const RenderContext &renderContext) :
 
     mShader = ShaderManager::getShader("basic");
 
-    mShaderMvp = mShader->uniformId("MVP");
-    mShaderLightPosition = mShader->uniformId("LightPosition");
-    mShaderDiffuseReflectivity = mShader->uniformId("DiffuseReflectivity");
-    mShaderLightSourceIntensity = mShader->uniformId("LightSourceIntensity");
+    mLightBlock = mShader->getUniformBlock("Light", LIGHT_BLOCK_FIELDS);
+    mMaterialBlock = mShader->getUniformBlock("Material", MATERIAL_BLOCK_FIELDS);
+
+
     mShaderModelViewMatrix = mShader->uniformId("ModelViewMatrix");
     mShaderNormalMatrix = mShader->uniformId("NormalMatrix");
     mShaderProjectionMatrix = mShader->uniformId("ProjectionMatrix");
+    mShaderMvp = mShader->uniformId("MVP");
 
     mVertexPositionBuffers.resize(scene->mNumMeshes);
     mVertexNormalBuffers.resize(mVertexPositionBuffers.size());
@@ -95,13 +125,20 @@ void Model::draw()
     glUniformMatrix4fv(mShaderMvp, 1, GL_FALSE, &mRenderContext.mvp[0][0]);
     glUniformMatrix4fv(mShaderModelViewMatrix, 1, GL_FALSE, &mRenderContext.modelView[0][0]);
     glUniformMatrix4fv(mShaderProjectionMatrix, 1, GL_FALSE, &mRenderContext.projection[0][0]);
-
-    glUniform4fv(mShaderLightPosition, 1, &mRenderContext.lightPosition[0]);
-
-    glUniform3fv(mShaderDiffuseReflectivity, 1, &mRenderContext.diffuseReflectivity[0]);
-    glUniform3fv(mShaderLightSourceIntensity, 1, &mRenderContext.lightSourceIntensity[0]);
-
     glUniformMatrix3fv(mShaderNormalMatrix, 1, GL_FALSE, &mRenderContext.normal[0][0]);
+
+    mLightBlock->set(LIGHT_LA, mRenderContext.lightIntensityAmbient);
+    mLightBlock->set(LIGHT_LD, mRenderContext.lightIntensityDiffuse);
+    mLightBlock->set(LIGHT_LS, mRenderContext.lightIntensitySpecular);
+    mLightBlock->set(LIGHT_POSITION, mRenderContext.lightPosition);
+    mLightBlock->update();
+
+    mMaterialBlock->set(MATERIAL_KA, mRenderContext.materialReflectivityAmbient);
+    mMaterialBlock->set(MATERIAL_KD, mRenderContext.materialReflectivityDiffuse);
+    mMaterialBlock->set(MATERIAL_KS, mRenderContext.materialReflectivitySpecular);
+    mMaterialBlock->set(MATERIAL_SHININESS, mRenderContext.materialSpecularShininess);
+    mMaterialBlock->update();
+
 
 
     for (unsigned int i = 0; i < mVertexArrays.size(); i += 1) {

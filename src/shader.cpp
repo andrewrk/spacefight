@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
+#include <cstring>
 
 static std::string textFileRead(std::string filename) {
     std::ifstream t(filename);
@@ -98,3 +99,59 @@ GLint Shader::attribLocation(const std::string &name)
     return glGetAttribLocation(mProgramId, name.c_str());
 }
 
+std::unique_ptr<Shader::UniformBlock> Shader::getUniformBlock(const std::string &blockName, const GLchar** fieldNames)
+{
+    GLsizei count = 0;
+    while (fieldNames[count])
+        count += 1;
+
+    std::unique_ptr<Shader::UniformBlock> uniformBlockPtr(new UniformBlock);
+
+    GLuint blockIndex = glGetUniformBlockIndex(mProgramId, blockName.c_str());
+    glGetActiveUniformBlockiv(mProgramId, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &uniformBlockPtr->mBlockSize);
+    uniformBlockPtr->mBuffer = new GLubyte[uniformBlockPtr->mBlockSize];
+
+    GLuint *indices = new GLuint[count];
+    glGetUniformIndices(mProgramId, count, fieldNames, indices);
+    GLint *offsets = new GLint[count];
+    glGetActiveUniformsiv(mProgramId, count, indices, GL_UNIFORM_OFFSET, offsets);
+
+    glGenBuffers(1, &uniformBlockPtr->mUboHandle);
+    glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, uniformBlockPtr->mUboHandle);
+
+    delete[] indices;
+    delete[] offsets;
+
+    return uniformBlockPtr;
+}
+
+void Shader::UniformBlock::set(int index, float value) {
+    GLubyte *bytePtr = mBuffer + mOffsets[index];
+    float *floatPtr = reinterpret_cast<float *>(bytePtr);
+    *floatPtr = value;
+}
+
+void Shader::UniformBlock::set(int index, const glm::vec3 &value)
+{
+    GLubyte *bytePtr = mBuffer + mOffsets[index];
+    memcpy(bytePtr, &value[0], sizeof(float) * 3);
+}
+
+void Shader::UniformBlock::set(int index, const glm::vec4 &value)
+{
+    GLubyte *bytePtr = mBuffer + mOffsets[index];
+    memcpy(bytePtr, &value[0], sizeof(float) * 4);
+}
+
+void Shader::UniformBlock::update()
+{
+    glBindBuffer(GL_UNIFORM_BUFFER, mUboHandle);
+    glBufferData(GL_UNIFORM_BUFFER, mBlockSize, mBuffer, GL_DYNAMIC_DRAW);
+}
+
+
+Shader::UniformBlock::~UniformBlock()
+{
+    glDeleteBuffers(1, &mUboHandle);
+    delete[] mBuffer;
+}
