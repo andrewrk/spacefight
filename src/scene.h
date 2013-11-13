@@ -30,7 +30,11 @@ private:
 
     std::vector<SDL_Joystick*> mJoysticks;
 
+    float mCameraDistance = 0.4;
+    glm::vec3 mCameraDirection; // unit vector pointing from 0,0,0 to camera
+
     void flushEvents();
+    void update(double dx);
     void draw();
     void initJoystick();
 

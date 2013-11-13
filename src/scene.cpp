@@ -4,6 +4,14 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <iostream>
 
+#include <limits>
+#include <cstdint>
+
+#include <SDL2/SDL_joystick.h>
+
+const double CAMERA_SPEED = 0.02;
+const double CAMERA_ROTATION_SPEED = 0.02;
+
 Scene::Scene()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
@@ -44,17 +52,10 @@ Scene::Scene()
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
 
-
+    mCameraDirection = glm::vec3(0, 1.0, 0);
 
     mRenderContext.projection = glm::perspective(60.0, width / (double)height, 0.1, 100.0);
-    mRenderContext.view = glm::lookAt(
-                glm::vec3(0.0, -4.0, 0.0),
-                glm::vec3(0.0, 0.0, 0.0),
-                glm::vec3(0.0, 0.0, 1.0));
     mRenderContext.model = glm::mat4(1.0);
-    mRenderContext.modelView = mRenderContext.view * mRenderContext.model;
-    mRenderContext.mvp = mRenderContext.projection * mRenderContext.modelView;
-    mRenderContext.normal = glm::inverseTranspose(glm::mat3(mRenderContext.modelView));
     mRenderContext.lightPosition = glm::vec4(1.0, -3.0, 0.0, 1.0);
     mRenderContext.lightSourceIntensity = glm::vec3(0.8, 0.8, 0.8);
     mRenderContext.diffuseReflectivity = glm::vec3(0.8, 0.5, 0.5);
@@ -80,16 +81,60 @@ int Scene::start() {
 
     while(mRunning)
     {
-        flushEvents();
+        update(1.0);
         draw();
         SDL_GL_SwapWindow(mWindow);
     }
     return 0;
 }
 
+void Scene::update(double dx)
+{
+    flushEvents();
+
+    double joyX = 0.0;
+    double joyY = 0.0;
+    double joyZ = 0.0;
+    for (unsigned int i = 0; i < mJoysticks.size(); i += 1) {
+        SDL_Joystick *joystick = mJoysticks[i];
+
+        Sint16 val = SDL_JoystickGetAxis(joystick, 0);
+        joyX += (double) val / (double) INT16_MAX;
+
+        val = SDL_JoystickGetAxis(joystick, 1);
+        joyY += (double) val / (double) INT16_MAX;
+
+        val = SDL_JoystickGetAxis(joystick, 2);
+        joyZ += (double) val / (double) INT16_MAX;
+    }
+
+    mCameraDistance += joyZ * CAMERA_SPEED * dx;
+
+    glm::vec3 eye = mCameraDirection * mCameraDistance;
+
+    double angle = atan2(eye[1], eye[0]);
+    std::cout << "joyX: " << joyX << " eyeX: " << eye[0] << " eyeY: " << eye[1] << " angle: " << angle << "\n";
+    angle += joyX * CAMERA_ROTATION_SPEED * dx;
+
+    eye[0] = mCameraDistance * cos(angle);
+    eye[1] = mCameraDistance * sin(angle);
+
+    mCameraDirection = glm::normalize(eye);
+
+    mRenderContext.view = glm::lookAt(
+                eye,
+                glm::vec3(0.0, 0.0, 0.0),
+                glm::vec3(0.0, 0.0, 1.0));
+
+    mRenderContext.modelView = mRenderContext.view * mRenderContext.model;
+    mRenderContext.mvp = mRenderContext.projection * mRenderContext.modelView;
+    mRenderContext.normal = glm::inverseTranspose(glm::mat3(mRenderContext.modelView));
+
+}
 
 void Scene::draw()
 {
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     mMonkeyModel->draw();
 }
 
@@ -104,12 +149,6 @@ void Scene::flushEvents() {
         case SDL_QUIT:
             mRunning = false;
             break;
-        case SDL_JOYBUTTONDOWN:
-            std::cout << "joy button down";
-            break;
-        case SDL_JOYAXISMOTION:
-            std::cout << "axis: " << event.jaxis.axis << " value: " << event.jaxis.value << "\n";
-            break;
         }
     }
 }
@@ -121,6 +160,7 @@ void Scene::initJoystick()
     {
         std::cout << "Joystick name: " << SDL_JoystickNameForIndex(i) << "\n";
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
+
         if (!joystick) {
             std::cerr << "Unable to open joystick: " << SDL_GetError() << "\n";
         } else {
