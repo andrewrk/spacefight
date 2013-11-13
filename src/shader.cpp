@@ -107,20 +107,34 @@ std::unique_ptr<Shader::UniformBlock> Shader::getUniformBlock(const std::string 
 
     std::unique_ptr<Shader::UniformBlock> uniformBlockPtr(new UniformBlock);
 
+    GLenum err = glGetError();
+    assert(err == GL_NO_ERROR);
+
     GLuint blockIndex = glGetUniformBlockIndex(mProgramId, blockName.c_str());
+    assert(blockIndex != GL_INVALID_INDEX);
     glGetActiveUniformBlockiv(mProgramId, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &uniformBlockPtr->mBlockSize);
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
     uniformBlockPtr->mBuffer = new GLubyte[uniformBlockPtr->mBlockSize];
 
     GLuint *indices = new GLuint[count];
     glGetUniformIndices(mProgramId, count, fieldNames, indices);
-    GLint *offsets = new GLint[count];
-    glGetActiveUniformsiv(mProgramId, count, indices, GL_UNIFORM_OFFSET, offsets);
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
+    uniformBlockPtr->mOffsets.resize(count);
+    glGetActiveUniformsiv(mProgramId, count, indices, GL_UNIFORM_OFFSET, &uniformBlockPtr->mOffsets[0]);
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
 
     glGenBuffers(1, &uniformBlockPtr->mUboHandle);
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
     glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, uniformBlockPtr->mUboHandle);
 
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
+
     delete[] indices;
-    delete[] offsets;
 
     return uniformBlockPtr;
 }
