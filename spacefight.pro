@@ -31,7 +31,7 @@ unix: PKGCONFIG += gl
 unix: PKGCONFIG += assimp
 
 
-
 OTHER_FILES += \
     src/shaders/basic.frag \
     src/shaders/basic.vert
+

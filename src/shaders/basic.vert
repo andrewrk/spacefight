@@ -19,7 +19,6 @@ void main()
     vec3 s = normalize(vec3(LightPosition - eyeCoords));
     // the diffuse shading equation
     LightIntensity = LightSourceIntensity * DiffuseReflectivity * max(dot(s, tnorm), 0.0);
-    LightIntensity = vec3(1, 0, 0);
     // convert position to clip coordinates and pass along
     gl_Position = MVP * vec4(VertexPosition, 1.0);
 }
