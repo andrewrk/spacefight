@@ -62,8 +62,13 @@ Scene::Scene() : mTexture("assets/test.png")
     mRenderContext.projection = glm::perspective(60.0, width / (double)height, 0.1, 100.0);
     mRenderContext.model = glm::mat4(1.0);
     mRenderContext.lightPosition = glm::vec4(1.0, -3.0, 0.0, 1.0);
-    mRenderContext.lightSourceIntensity = glm::vec3(0.8, 0.8, 0.8);
-    mRenderContext.diffuseReflectivity = glm::vec3(0.8, 0.5, 0.5);
+    mRenderContext.lightIntensityAmbient = glm::vec3(0.2, 0.2, 0.2);
+    mRenderContext.lightIntensityDiffuse = glm::vec3(0.5, 0.5, 0.5);
+    mRenderContext.lightIntensitySpecular = glm::vec3(0.8, 0.8, 0.8);
+    mRenderContext.materialReflectivityAmbient = glm::vec3(0.5, 0.5, 0.5);
+    mRenderContext.materialReflectivityDiffuse = glm::vec3(0.5, 0.5, 0.5);
+    mRenderContext.materialReflectivitySpecular = glm::vec3(0.5, 0.5, 0.5);
+    mRenderContext.materialSpecularShininess = 2.0f;
 
     mMonkeyModel = new Model("models/monkey.obj", mRenderContext);
 
@@ -83,8 +88,6 @@ Scene::~Scene()
 int Scene::start() {
 
     initJoystick();
-
-    mTexture.load();
 
     while(mRunning)
     {
@@ -120,6 +123,10 @@ void Scene::update(double dx)
     if (state[SDL_SCANCODE_UP]) joyZ -= 1.0;
     if (state[SDL_SCANCODE_DOWN]) joyZ += 1.0;
 
+    if (state[SDL_SCANCODE_W]) mRenderContext.lightPosition.z += 0.1;
+    if (state[SDL_SCANCODE_S]) mRenderContext.lightPosition.z -= 0.1;
+
+
     mCameraDistance += joyZ * CAMERA_SPEED * dx;
 
     glm::vec3 eye = mCameraDirection * mCameraDistance;
@@ -147,6 +154,7 @@ void Scene::update(double dx)
 void Scene::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
     mMonkeyModel->draw();
 }
 

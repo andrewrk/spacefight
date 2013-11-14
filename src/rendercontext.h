@@ -10,9 +10,16 @@ struct RenderContext {
     glm::mat4 modelView;
     glm::mat4 mvp;
     glm::mat3 normal;
+
     glm::vec4 lightPosition;
-    glm::vec3 diffuseReflectivity;
-    glm::vec3 lightSourceIntensity;
+    glm::vec3 lightIntensityAmbient;
+    glm::vec3 lightIntensityDiffuse;
+    glm::vec3 lightIntensitySpecular;
+
+    glm::vec3 materialReflectivityAmbient;
+    glm::vec3 materialReflectivityDiffuse;
+    glm::vec3 materialReflectivitySpecular;
+    float materialSpecularShininess;
 };
 
 #endif // RENDERCONTEXT_H

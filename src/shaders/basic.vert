@@ -3,9 +3,21 @@
 in vec3 VertexPosition;
 in vec3 VertexNormal;
 out vec3 LightIntensity;
-uniform vec4 LightPosition; // light position in eye coords
-uniform vec3 DiffuseReflectivity; // diffuse reflectivity
-uniform vec3 LightSourceIntensity; // light source intensity
+
+layout (shared) uniform Light {
+    vec4 Position; // light position in eye coords
+    vec3 La; // ambient light intensity
+    vec3 Ld; // diffuse light intensity
+    vec3 Ls; // specular light intensity
+};
+
+layout (shared) uniform Material {
+    vec3 Ka; // ambient reflectivity
+    vec3 Kd; // diffuse reflectivity
+    vec3 Ks; // specular reflectivity
+    float Shininess; // specular shininess factor
+};
+
 uniform mat4 ModelViewMatrix;
 uniform mat3 NormalMatrix;
 uniform mat4 ProjectionMatrix;
@@ -16,9 +28,17 @@ void main()
     // convert normal and position to eye coords
     vec3 tnorm = normalize(NormalMatrix * VertexNormal);
     vec4 eyeCoords = ModelViewMatrix * vec4(VertexPosition, 1.0);
-    vec3 s = normalize(vec3(LightPosition - eyeCoords));
-    // the diffuse shading equation
-    LightIntensity = LightSourceIntensity * DiffuseReflectivity * max(dot(s, tnorm), 0.0);
+    vec3 s = normalize(vec3(Position - eyeCoords));
+    vec3 v = normalize(-eyeCoords.xyz);
+    vec3 r = reflect(-s, tnorm);
+    vec3 ambient = La * Ka;
+    float sDotN = max(dot(s, tnorm), 0.0);
+    vec3 diffuse = Ld * Kd * sDotN;
+    vec3 spec = vec3(0.0);
+    if (sDotN > 0.0) {
+        spec = Ls * Ks * pow(max(dot(r,v), 0.0), Shininess);
+    }
+    LightIntensity = ambient + diffuse + spec;
     // convert position to clip coordinates and pass along
     gl_Position = MVP * vec4(VertexPosition, 1.0);
 }

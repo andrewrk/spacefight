@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
+#include <cstring>
 
 static std::string textFileRead(std::string filename) {
     std::ifstream t(filename);
@@ -98,3 +99,82 @@ GLint Shader::attribLocation(const std::string &name)
     return glGetAttribLocation(mProgramId, name.c_str());
 }
 
+std::unique_ptr<Shader::UniformBlock> Shader::getUniformBlock(const std::string &blockName, const GLchar** fieldNames, GLuint bindingId)
+{
+    GLsizei count = 0;
+    while (fieldNames[count])
+        count += 1;
+
+    std::unique_ptr<Shader::UniformBlock> uniformBlockPtr(new UniformBlock);
+
+    GLenum err = glGetError();
+    assert(err == GL_NO_ERROR);
+
+    GLuint blockIndex = glGetUniformBlockIndex(mProgramId, blockName.c_str());
+    assert(blockIndex != GL_INVALID_INDEX);
+    glGetActiveUniformBlockiv(mProgramId, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &uniformBlockPtr->mBlockSize);
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
+    uniformBlockPtr->mBuffer = new GLubyte[uniformBlockPtr->mBlockSize];
+
+    GLuint *indices = new GLuint[count];
+    glGetUniformIndices(mProgramId, count, fieldNames, indices);
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
+    uniformBlockPtr->mOffsets.resize(count);
+    glGetActiveUniformsiv(mProgramId, count, indices, GL_UNIFORM_OFFSET, &uniformBlockPtr->mOffsets[0]);
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
+
+    glGenBuffers(1, &uniformBlockPtr->mUboHandle);
+    glBindBuffer(GL_UNIFORM_BUFFER, uniformBlockPtr->mUboHandle);
+    glBufferData(GL_UNIFORM_BUFFER, uniformBlockPtr->mBlockSize, uniformBlockPtr->mBuffer, GL_DYNAMIC_DRAW);
+
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
+    glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, uniformBlockPtr->mUboHandle);
+
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
+
+    glUniformBlockBinding(mProgramId, blockIndex, bindingId);
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
+
+    delete[] indices;
+
+    return uniformBlockPtr;
+}
+
+void Shader::UniformBlock::set(int index, float value) {
+    GLubyte *bytePtr = mBuffer + mOffsets[index];
+    float *floatPtr = reinterpret_cast<float *>(bytePtr);
+    *floatPtr = value;
+}
+
+void Shader::UniformBlock::set(int index, const glm::vec3 &value)
+{
+    GLubyte *bytePtr = mBuffer + mOffsets[index];
+    glm::vec3 *vecPtr = reinterpret_cast<glm::vec3 *>(bytePtr);
+    *vecPtr = value;
+}
+
+void Shader::UniformBlock::set(int index, const glm::vec4 &value)
+{
+    GLubyte *bytePtr = mBuffer + mOffsets[index];
+    glm::vec4 *vecPtr = reinterpret_cast<glm::vec4 *>(bytePtr);
+    *vecPtr = value;
+}
+
+void Shader::UniformBlock::update()
+{
+    glBindBuffer(GL_UNIFORM_BUFFER, mUboHandle);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, mBlockSize, mBuffer);
+}
+
+
+Shader::UniformBlock::~UniformBlock()
+{
+    glDeleteBuffers(1, &mUboHandle);
+    delete[] mBuffer;
+}
