@@ -16,13 +16,16 @@ class Texture
         Texture(std::string file);
         ~Texture();
 
-        bool load();
         GLuint getID() { return mID; }
-        SDL_Surface* inverse(SDL_Surface *source);
+        void setFiltering(GLenum target, GLenum name, GLint param);
+       // void setSamplerParameter(GLenum target, )
 
     private:
         GLuint mID;
         std::string mPath;
+        bool load();
+        SDL_Surface* inverse(SDL_Surface *source);
+
 
 
 };

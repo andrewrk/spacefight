@@ -11,6 +11,11 @@ Texture::~Texture()
 
 }
 
+void Texture::setFiltering(GLenum target, GLenum name, GLint param)
+{
+    glTexParameteri(target, name, param);
+}
+
 bool Texture::load()
 {
     SDL_Surface *image = IMG_Load(mPath.c_str());
@@ -51,6 +56,7 @@ bool Texture::load()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //Further away
     }
     glBindTexture(GL_TEXTURE_2D, 0);
+    return true;
 }
 
 SDL_Surface* Texture::inverse(SDL_Surface* source)

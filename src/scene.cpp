@@ -9,10 +9,12 @@
 
 #include <SDL2/SDL_joystick.h>
 
+
+
 const double CAMERA_SPEED = 0.02;
 const double CAMERA_ROTATION_SPEED = 0.02;
 
-Scene::Scene() : mTexture("assets/test.png")
+Scene::Scene() : mSkybox(0)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
         std::cerr << "Unable to initialize SDL\n";
@@ -89,6 +91,8 @@ int Scene::start() {
 
     initJoystick();
 
+    mSkybox = new Skybox(50.0f, "assets", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png");
+
     while(mRunning)
     {
         update(1.0);
@@ -156,6 +160,7 @@ void Scene::draw()
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     mMonkeyModel->draw();
+    mSkybox->render();
 }
 
 void Scene::flushEvents() {

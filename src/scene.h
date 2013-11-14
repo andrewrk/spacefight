@@ -12,6 +12,7 @@
 #include <GL/glew.h>
 
 #include "texture.h"
+#include "skybox.h"
 
 class Scene
 {
@@ -29,7 +30,7 @@ private:
 
     Model *mMonkeyModel;
 
-    Texture mTexture;
+    Skybox *mSkybox;
 
 
     std::vector<SDL_Joystick*> mJoysticks;
@@ -41,6 +42,8 @@ private:
     void update(double dx);
     void draw();
     void initJoystick();
+
+
 
 };
 
