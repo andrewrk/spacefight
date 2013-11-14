@@ -4,14 +4,14 @@ in vec3 VertexPosition;
 in vec3 VertexNormal;
 out vec3 LightIntensity;
 
-uniform Light {
+layout (shared) uniform Light {
     vec4 Position; // light position in eye coords
     vec3 La; // ambient light intensity
     vec3 Ld; // diffuse light intensity
     vec3 Ls; // specular light intensity
 };
 
-uniform Material {
+layout (shared) uniform Material {
     vec3 Ka; // ambient reflectivity
     vec3 Kd; // diffuse reflectivity
     vec3 Ks; // specular reflectivity

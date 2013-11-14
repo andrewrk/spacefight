@@ -38,7 +38,7 @@ public:
         friend class Shader;
     };
 
-    std::unique_ptr<UniformBlock> getUniformBlock(const std::string &blockName, const GLchar **fieldNames);
+    std::unique_ptr<UniformBlock> getUniformBlock(const std::string &blockName, const GLchar **fieldNames, GLuint bindingId);
 
 private:
     GLuint mProgramId;

@@ -49,8 +49,8 @@ Model::Model(const std::string &filename, const RenderContext &renderContext) :
 
     mShader = ShaderManager::getShader("basic");
 
-    mLightBlock = mShader->getUniformBlock("Light", LIGHT_BLOCK_FIELDS);
-    mMaterialBlock = mShader->getUniformBlock("Material", MATERIAL_BLOCK_FIELDS);
+    mLightBlock = mShader->getUniformBlock("Light", LIGHT_BLOCK_FIELDS, 0);
+    mMaterialBlock = mShader->getUniformBlock("Material", MATERIAL_BLOCK_FIELDS, 1);
 
 
     mShaderModelViewMatrix = mShader->uniformId("ModelViewMatrix");
