@@ -68,7 +68,7 @@ Scene::Scene() : mTexture("assets/test.png")
     mRenderContext.materialReflectivityAmbient = glm::vec3(0.5, 0.5, 0.5);
     mRenderContext.materialReflectivityDiffuse = glm::vec3(0.5, 0.5, 0.5);
     mRenderContext.materialReflectivitySpecular = glm::vec3(0.5, 0.5, 0.5);
-    mRenderContext.materialSpecularShininess = 2.0f;
+    mRenderContext.materialSpecularShininess = 100.0f;
 
     mMonkeyModel = new Model("models/monkey.obj", mRenderContext);
 
