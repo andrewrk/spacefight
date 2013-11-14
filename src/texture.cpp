@@ -3,7 +3,7 @@
 Texture::Texture(std::string file)
     :mID(0), mPath(file)
 {
-
+    load();
 }
 
 Texture::~Texture()

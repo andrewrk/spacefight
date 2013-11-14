@@ -12,6 +12,8 @@
 
 #include <GL/glew.h>
 
+#include "texture.h"
+
 class Model
 {
 public:
@@ -39,6 +41,7 @@ private:
     const RenderContext &mRenderContext;
 
     void importNode(aiNode *node);
+
 };
 
 #endif // MODEL_H

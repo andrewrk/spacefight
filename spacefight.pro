@@ -12,7 +12,8 @@ SOURCES += \
     src/shader.cpp \
     src/model.cpp \
     src/shadermanager.cpp \
-    src/texture.cpp
+    src/texture.cpp \
+    src/skybox.cpp
 
 
 HEADERS += \
@@ -21,7 +22,8 @@ HEADERS += \
     src/model.h \
     src/shadermanager.h \
     src/rendercontext.h \
-    src/texture.h
+    src/texture.h \
+    src/skybox.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2
