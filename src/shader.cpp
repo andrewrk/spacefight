@@ -117,12 +117,32 @@ std::unique_ptr<Shader::UniformBlock> Shader::getUniformBlock(const std::string 
     assert(err == GL_NO_ERROR);
     uniformBlockPtr->mBuffer = new GLubyte[uniformBlockPtr->mBlockSize];
 
-    GLuint *indices = new GLuint[count];
-    glGetUniformIndices(mProgramId, count, fieldNames, indices);
+    std::vector<GLuint> indices;
+    indices.resize(count);
+    glGetUniformIndices(mProgramId, count, fieldNames, &indices[0]);
     err = glGetError();
     assert(err == GL_NO_ERROR);
+
+
+    // this one has the invalid indexes removed; uniformBlockPtr->mOffsets contains them as -1
+    std::vector<GLint> offsets(count);
     uniformBlockPtr->mOffsets.resize(count);
-    glGetActiveUniformsiv(mProgramId, count, indices, GL_UNIFORM_OFFSET, &uniformBlockPtr->mOffsets[0]);
+    // mark the ones not found in the shader
+    // and remove them from indices
+    for (int i = 0, indexIndex = 0; i < count; i += 1, indexIndex += 1) {
+        if (indices[i] == GL_INVALID_INDEX) {
+            uniformBlockPtr->mOffsets[i] = -1;
+            indices.erase(indices.begin() + indexIndex);
+            offsets.erase(offsets.begin() + indexIndex);
+            indexIndex -= 1;
+        } else {
+            // set to zero so that later we can tell the difference between
+            // missing offsets and normal offsets
+            uniformBlockPtr->mOffsets[i] = 0;
+        }
+    }
+
+    glGetActiveUniformsiv(mProgramId, offsets.size(), &indices[0], GL_UNIFORM_OFFSET, &offsets[0]);
     err = glGetError();
     assert(err == GL_NO_ERROR);
 
@@ -141,27 +161,42 @@ std::unique_ptr<Shader::UniformBlock> Shader::getUniformBlock(const std::string 
     err = glGetError();
     assert(err == GL_NO_ERROR);
 
-    delete[] indices;
+    // update mOffsets with the correct values
+    for (int i = 0, offsetIndex = 0; i < count; i += 1, offsetIndex += 1) {
+        GLint offset = uniformBlockPtr->mOffsets[i];
+        if (offset == -1) {
+            offsetIndex -= 1;
+            continue;
+        }
+        uniformBlockPtr->mOffsets[i] = offsets[offsetIndex];
+    }
 
     return uniformBlockPtr;
 }
 
-void Shader::UniformBlock::set(int index, float value) {
-    GLubyte *bytePtr = mBuffer + mOffsets[index];
+void Shader::UniformBlock::set(int index, float value)
+{
+    GLint offset = mOffsets[index];
+    if (offset == -1) return;
+    GLubyte *bytePtr = mBuffer + offset;
     float *floatPtr = reinterpret_cast<float *>(bytePtr);
     *floatPtr = value;
 }
 
 void Shader::UniformBlock::set(int index, const glm::vec3 &value)
 {
-    GLubyte *bytePtr = mBuffer + mOffsets[index];
+    GLint offset = mOffsets[index];
+    if (offset == -1) return;
+    GLubyte *bytePtr = mBuffer + offset;
     glm::vec3 *vecPtr = reinterpret_cast<glm::vec3 *>(bytePtr);
     *vecPtr = value;
 }
 
 void Shader::UniformBlock::set(int index, const glm::vec4 &value)
 {
-    GLubyte *bytePtr = mBuffer + mOffsets[index];
+    GLint offset = mOffsets[index];
+    if (offset == -1) return;
+    GLubyte *bytePtr = mBuffer + offset;
     glm::vec4 *vecPtr = reinterpret_cast<glm::vec4 *>(bytePtr);
     *vecPtr = value;
 }

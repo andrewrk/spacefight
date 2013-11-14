@@ -43,7 +43,7 @@ Model::Model(const std::string &filename, const RenderContext &renderContext) :
         aiProcess_CalcTangentSpace|
         aiProcess_JoinIdenticalVertices|
         aiProcess_SortByPType|
-        aiProcess_GenNormals);
+        aiProcess_GenSmoothNormals);
 
     assert(scene);
 
