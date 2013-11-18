@@ -13,6 +13,7 @@
 
 #include "texture.h"
 #include "skybox.h"
+#include "plane.h"
 
 class Scene
 {
@@ -31,6 +32,9 @@ private:
     Model *mMonkeyModel;
 
     Skybox *mSkybox;
+
+    Plane *mPlane;
+
 
 
     std::vector<SDL_Joystick*> mJoysticks;

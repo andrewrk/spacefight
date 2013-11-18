@@ -17,14 +17,17 @@ class Texture
         ~Texture();
 
         GLuint getID() { return mID; }
-        void setFiltering(GLenum target, GLenum name, GLint param);
-       // void setSamplerParameter(GLenum target, )
+        bool load();
+        void setFiltering(GLenum name, GLint param);
+        void setParameter(GLenum parameter, GLenum value);
+        void bind();
+        void unbind();
 
     private:
         GLuint mID;
+        //GLuint mSampler;
         std::string mPath;
-        bool load();
-        SDL_Surface* inverse(SDL_Surface *source);
+        SDL_Surface* inverse(SDL_Surface *source) const;
 
 
 

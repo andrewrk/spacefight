@@ -30,3 +30,5 @@ void main()
     vec3 color3 = La * Ka + diffuse;
     FragColor = vec4(color3, 1.0);
 }
+
+

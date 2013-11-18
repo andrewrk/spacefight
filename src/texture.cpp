@@ -3,7 +3,6 @@
 Texture::Texture(std::string file)
     :mID(0), mPath(file)
 {
-    load();
 }
 
 Texture::~Texture()
@@ -11,9 +10,26 @@ Texture::~Texture()
 
 }
 
-void Texture::setFiltering(GLenum target, GLenum name, GLint param)
+
+void Texture::setFiltering(GLenum name, GLint param)
 {
-    glTexParameteri(target, name, param);
+    //glTexParameteri(GL_TEXTURE_2D, name, param);
+}
+
+void Texture::setParameter(GLenum parameter, GLenum value)
+{
+    glTexParameteri(GL_TEXTURE_2D, parameter, value);
+}
+
+void Texture::bind()
+{
+    glBindTexture(GL_TEXTURE_2D, mID);
+}
+
+void Texture::unbind()
+{
+    glBindTexture(GL_TEXTURE_2D, 0);
+    //glBindSampler()
 }
 
 bool Texture::load()
@@ -39,9 +55,24 @@ bool Texture::load()
         GLenum format(0);
 
         if(inversed->format->BytesPerPixel == 3) //No alpha
+        {
             internalFormat = GL_RGB;
+
+            if(inversed->format->Rmask == 0xff)
+                format = GL_RGB;
+            else
+                format = GL_BGR;
+        }
         else if(inversed->format->BytesPerPixel == 4)
+        {
             internalFormat = GL_RGBA;
+
+            if(inversed->format->Rmask == 0xff)
+                format = GL_RGBA;
+            else
+                format = GL_BGRA;
+
+        }
         else
         {
             std::cout << "Error, unknown image format" << std::endl;
@@ -50,16 +81,23 @@ bool Texture::load()
         }
 
         //Copies the pixels
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, inversed->w, inversed->h, 0, format, GL_UNSIGNED_BYTE, inversed->pixels);
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image->w, inversed->h, 0, format, GL_UNSIGNED_BYTE, inversed->pixels);
         //Filters for texture resolution
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //Closest
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //Further away
+
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //Closest
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //Further away
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //Further away
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
     glBindTexture(GL_TEXTURE_2D, 0);
+    SDL_FreeSurface(inversed);
     return true;
 }
 
-SDL_Surface* Texture::inverse(SDL_Surface* source)
+SDL_Surface* Texture::inverse(SDL_Surface* source) const
 {
     SDL_Surface* inversed;
 

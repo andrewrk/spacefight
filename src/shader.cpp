@@ -96,7 +96,12 @@ GLuint Shader::uniformId(const std::string &name)
 
 GLint Shader::attribLocation(const std::string &name)
 {
-    return glGetAttribLocation(mProgramId, name.c_str());
+    std::cout << "Program id: " << mProgramId << std::endl;
+    GLuint num = glGetAttribLocation(mProgramId, name.c_str());
+
+    std::cout << "Attribute in shader for name: " << name << ": " << num << std::endl;
+    //return glGetAttribLocation(mProgramId, name.c_str());
+    return num;
 }
 
 std::unique_ptr<Shader::UniformBlock> Shader::getUniformBlock(const std::string &blockName, const GLchar** fieldNames, GLuint bindingId)

@@ -2,8 +2,12 @@
 #define SKYBOX_H
 
 #include <GL/glew.h>
+#include <glm/glm.hpp>
 
 #include "texture.h"
+#include "shadermanager.h"
+#include "rendercontext.h"
+#include "shader.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -17,21 +21,23 @@
 class Skybox
 {
 public:
-    Skybox(float size, std::string const folder, std::string const front, std::string const back, std::string const top, std::string const bottom, std::string const left, std::string const right);
+    Skybox(std::string const folder, std::string const front, std::string const back, std::string const top, std::string const bottom, std::string const left, std::string const right, const RenderContext &renderContext);
     ~Skybox();
     void loadTextures();
     void loadBuffers();
     void render();
 private:
+    std::string mFolder;
     std::string mFrontPath;
     std::string mBackPath;
     std::string mTopPath;
     std::string mBottomPath;
     std::string mLeftPath;
     std::string mRightPath;
-    std::string mFolder;
+
 
     std::vector<Texture*> mTextures;
+    Shader *mShader;
 
     GLuint mVAOid;
     GLuint mVBOid;
@@ -40,6 +46,14 @@ private:
     float mTexCoords[72];
     int mSizeTextureBytes;
     int mSizeVerticeBytes;
+
+    GLuint mShaderModelViewMatrix;
+    GLuint mShaderNormalMatrix;
+    GLuint mShaderProjectionMatrix;
+    GLuint mShaderMvp;
+
+    const RenderContext &mRenderContext;
+
 
 
 };

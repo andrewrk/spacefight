@@ -13,7 +13,8 @@ SOURCES += \
     src/model.cpp \
     src/shadermanager.cpp \
     src/texture.cpp \
-    src/skybox.cpp
+    src/skybox.cpp \
+    src/plane.cpp
 
 
 HEADERS += \
@@ -23,7 +24,9 @@ HEADERS += \
     src/shadermanager.h \
     src/rendercontext.h \
     src/texture.h \
-    src/skybox.h
+    src/skybox.h \
+    plane.h \
+    src/plane.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2
@@ -39,5 +42,7 @@ unix: LIBS += -lSDL2_image
 
 OTHER_FILES += \
     src/shaders/basic.frag \
-    src/shaders/basic.vert
+    src/shaders/basic.vert \
+    src/shaders/texture.vert \
+    src/shaders/texture.frag
 
