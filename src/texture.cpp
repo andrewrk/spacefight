@@ -10,12 +10,6 @@ Texture::~Texture()
 
 }
 
-
-void Texture::setFiltering(GLenum name, GLint param)
-{
-    //glTexParameteri(GL_TEXTURE_2D, name, param);
-}
-
 void Texture::setParameter(GLenum parameter, GLenum value)
 {
     glTexParameteri(GL_TEXTURE_2D, parameter, value);
@@ -29,7 +23,6 @@ void Texture::bind()
 void Texture::unbind()
 {
     glBindTexture(GL_TEXTURE_2D, 0);
-    //glBindSampler()
 }
 
 bool Texture::load()
@@ -82,9 +75,6 @@ bool Texture::load()
 
         //Copies the pixels
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image->w, inversed->h, 0, format, GL_UNSIGNED_BYTE, inversed->pixels);
-        //Filters for texture resolution
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //Closest
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //Further away
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //Closest
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //Further away

@@ -25,7 +25,6 @@ HEADERS += \
     src/rendercontext.h \
     src/texture.h \
     src/skybox.h \
-    plane.h \
     src/plane.h
 
 unix: CONFIG += link_pkgconfig

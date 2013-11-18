@@ -61,7 +61,6 @@ Skybox::Skybox(const std::string folder, const std::string front, const std::str
     loadBuffers();
 
     mShaderModelViewMatrix = mShader->uniformId("ModelViewMatrix");
-    //mShaderNormalMatrix = mShader->uniformId("NormalMatrix");
     mShaderProjectionMatrix = mShader->uniformId("ProjectionMatrix");
     mShaderMvp = mShader->uniformId("MVP");
 
@@ -87,10 +86,6 @@ void Skybox::loadTextures()
     for(unsigned int i(0); i < mTextures.size(); i++)
     {
         mTextures[i]->load();
-        //mTextures[i]->setParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        //mTextures[i]->setParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        //mTextures[i]->setFiltering()
-
     }
 
 }

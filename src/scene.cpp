@@ -30,9 +30,6 @@ Scene::Scene() : mSkybox(0)
 
     int width = 1366;
     int height = 768;
-    /*mWindow = SDL_CreateWindow("Space Fight 3D!",
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
-        SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_OPENGL);*/
 
     mWindow = SDL_CreateWindow("Space Fight 3D!",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_OPENGL);
@@ -60,7 +57,6 @@ Scene::Scene() : mSkybox(0)
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glDepthFunc(GL_LESS);
-    //glEnable(GL_CULL_FACE);
 
 
     mCameraDirection = glm::vec3(0, 1.0, 0);
@@ -96,7 +92,6 @@ int Scene::start() {
     initJoystick();
 
     mSkybox = new Skybox("assets", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png", mRenderContext);
-    //mPlane = new Plane("assets/tex.png", mRenderContext);
 
     while(mRunning)
     {
@@ -166,7 +161,6 @@ void Scene::draw()
 
     mMonkeyModel->draw();
     mSkybox->render();
-    //mPlane->render();
 }
 
 void Scene::flushEvents() {
