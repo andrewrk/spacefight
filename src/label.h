@@ -29,6 +29,7 @@ public:
 
     void draw();
 
+    // actual text width
     int mWidth;
     int mHeight;
 
@@ -47,7 +48,10 @@ private:
     cairo_t *mCairoContext;
     PangoLayout *mLayout;
 
-    void resize();
+    int mSurfaceWidth;
+    int mSurfaceHeight;
+
+    void maybeResize();
 };
 
 #endif // LABEL_H

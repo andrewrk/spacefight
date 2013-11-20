@@ -6,6 +6,9 @@
 
 #include <limits>
 #include <cstdint>
+#include <ctime>
+#include <sstream>
+#include <chrono>
 
 #include <SDL2/SDL_joystick.h>
 
@@ -13,6 +16,14 @@
 
 const double CAMERA_SPEED = 0.08;
 const double CAMERA_ROTATION_SPEED = 0.02;
+
+const double EPSILON = 0.0000000001;
+const double MAX_DISPLAY_FPS = 90000;
+const double TARGET_FPS = 60.0;
+const double TARGET_SPF = 1.0 / TARGET_FPS;
+const double FPS_SMOOTHNESS = 0.9;
+const double FPS_ONE_FRAME_WEIGHT = 1.0 - FPS_SMOOTHNESS;
+
 
 Scene::Scene() : mSkybox(0)
 {
@@ -78,16 +89,15 @@ Scene::Scene() : mSkybox(0)
 
     mMonkeyModel = new Model("models/monkey.obj", mRenderContext);
 
-    mLabel = new Label(mRenderContext);
-    mLabel->setText("aoeuaoeu");
-    mLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    mLabel->setFontFace("Sans Bold 38");
-    mLabel->update();
+    mFpsLabel = new Label(mRenderContext);
+    mFpsLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    mFpsLabel->setFontFace("Sans 12");
 
     mSkybox = new Skybox("assets", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png", mRenderContext);
 
     initJoystick();
 
+    setMinFps(20);
 
     err = glGetError();
     assert(err == GL_NO_ERROR);
@@ -103,17 +113,33 @@ Scene::~Scene()
     SDL_DestroyWindow(mWindow);
 }
 
+void Scene::setMinFps(double fps)
+{
+    mMaxSpf = 1 / fps;
+}
+
 int Scene::start() {
+    std::chrono::high_resolution_clock::time_point previousTime = std::chrono::high_resolution_clock::now();
     while(mRunning)
     {
-        update(1.0);
+        std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> delta = std::chrono::duration_cast<std::chrono::duration<double>>(now - previousTime);
+        previousTime = now;
+        double dt = delta.count();
+        if (dt < EPSILON) dt = EPSILON;
+        if (dt > mMaxSpf) dt = mMaxSpf;
+        double dx = dt / TARGET_SPF;
+        update(dt, dx);
         draw();
+        double fps = 1 / delta.count();
+        fps = fps < MAX_DISPLAY_FPS ? fps : MAX_DISPLAY_FPS;
+        mFps = mFps * FPS_SMOOTHNESS + fps * FPS_ONE_FRAME_WEIGHT;
         SDL_GL_SwapWindow(mWindow);
     }
     return 0;
 }
 
-void Scene::update(double dx)
+void Scene::update(double /* dt */, double dx)
 {
     flushEvents();
 
@@ -163,6 +189,10 @@ void Scene::update(double dx)
     mRenderContext.modelView = mRenderContext.view * mRenderContext.model;
     mRenderContext.normal = glm::inverseTranspose(glm::mat3(mRenderContext.modelView));
 
+    std::stringstream ss;
+    ss << mFps;
+    mFpsLabel->setText(ss.str());
+    mFpsLabel->update();
 }
 
 void Scene::draw()
@@ -183,7 +213,7 @@ void Scene::draw()
         (float)mRenderContext.screenHeight, 0.0f);
     mRenderContext.mvp = mRenderContext.projection;
 
-    mLabel->draw();
+    mFpsLabel->draw();
 }
 
 void Scene::flushEvents() {

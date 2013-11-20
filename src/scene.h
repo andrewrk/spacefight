@@ -22,6 +22,7 @@ public:
     Scene();
     ~Scene();
     int start();
+    void setMinFps(double fps);
 private:
     bool mRunning = true;
     SDL_GLContext mContext;
@@ -35,7 +36,9 @@ private:
     Skybox *mSkybox;
 
 
-    Label *mLabel;
+    double mMaxSpf;
+    double mFps;
+    Label *mFpsLabel;
 
     std::vector<SDL_Joystick*> mJoysticks;
 
@@ -43,7 +46,7 @@ private:
     glm::vec3 mCameraDirection; // unit vector pointing from 0,0,0 to camera
 
     void flushEvents();
-    void update(double dx);
+    void update(double dt, double dx);
     void draw();
     void initJoystick();
 

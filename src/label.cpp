@@ -26,7 +26,9 @@ void Label::init()
 Label::Label(const RenderContext &renderContext) :
     mWidth(0),
     mHeight(0),
-    mRenderContext(renderContext)
+    mRenderContext(renderContext),
+    mSurfaceWidth(0),
+    mSurfaceHeight(0)
 {
     glActiveTexture(GL_TEXTURE0); // what the fuck does this do?
     glGenTextures(1, &mTextureId);
@@ -77,8 +79,8 @@ Label::Label(const RenderContext &renderContext) :
     GLenum err = glGetError();
     assert(err == GL_NO_ERROR);
 
-    int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, mWidth);
-    mSurface = cairo_image_surface_create_for_data(&mImgBuffer[0], CAIRO_FORMAT_ARGB32, mWidth, mHeight, stride);
+    int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, mSurfaceWidth);
+    mSurface = cairo_image_surface_create_for_data(&mImgBuffer[0], CAIRO_FORMAT_ARGB32, mSurfaceWidth, mSurfaceHeight, stride);
     mCairoContext = cairo_create(mSurface);
     mLayout = pango_cairo_create_layout(mCairoContext);
     cairo_set_source_rgba(mCairoContext, 1, 1, 1, 1);
@@ -99,18 +101,24 @@ Label::~Label()
     cairo_destroy(mCairoContext);
 }
 
-void Label::resize()
+void Label::maybeResize()
 {
+    pango_layout_get_size(mLayout, &mWidth, &mHeight);
+    mWidth /= PANGO_SCALE;
+    mHeight /= PANGO_SCALE;
+
     unsigned int imgBufSize = 4 * mWidth * mHeight;
 
     if (imgBufSize <= mImgBuffer.size())
         return;
 
     mImgBuffer.resize(imgBufSize);
-    int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, mWidth);
+    if (mWidth > mSurfaceWidth) mSurfaceWidth = mWidth;
+    if (mHeight > mSurfaceHeight) mSurfaceHeight = mHeight;
+    int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, mSurfaceWidth);
 
     cairo_surface_destroy(mSurface);
-    mSurface = cairo_image_surface_create_for_data(&mImgBuffer[0], CAIRO_FORMAT_ARGB32, mWidth, mHeight, stride);
+    mSurface = cairo_image_surface_create_for_data(&mImgBuffer[0], CAIRO_FORMAT_ARGB32, mSurfaceWidth, mSurfaceHeight, stride);
 
     cairo_destroy(mCairoContext);
     mCairoContext = cairo_create(mSurface);
@@ -118,6 +126,19 @@ void Label::resize()
     cairo_set_source_rgba(mCairoContext, 1, 1, 1, 1);
 
     pango_cairo_update_layout(mCairoContext, mLayout);
+
+    glBindVertexArray(mVertexArray);
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
+    GLfloat vertexes[4][3] = {
+        {0, 0, 0},
+        {(float)mSurfaceWidth, 0, 0},
+        {0, (float)mSurfaceHeight, 0},
+        {(float)mSurfaceWidth, (float)mSurfaceHeight, 0},
+    };
+    glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * 4 * sizeof(GLfloat), vertexes);
+
+    GLenum err = glGetError();
+    assert(err == GL_NO_ERROR);
 }
 
 void Label::setFontFace(const std::string &fontFace)
@@ -125,11 +146,13 @@ void Label::setFontFace(const std::string &fontFace)
     PangoFontDescription *desc = pango_font_description_from_string(fontFace.c_str());
     pango_layout_set_font_description(mLayout, desc);
     pango_font_description_free(desc);
+    maybeResize();
 }
 
 void Label::setText(const std::string &text)
 {
     pango_layout_set_text(mLayout, text.data(), text.size());
+    maybeResize();
 }
 
 void Label::setColor(glm::vec4 color)
@@ -139,27 +162,12 @@ void Label::setColor(glm::vec4 color)
 
 void Label::update()
 {
-    pango_layout_get_size(mLayout, &mWidth, &mHeight);
-    mWidth /= PANGO_SCALE;
-    mHeight /= PANGO_SCALE;
-
-    resize();
-
     std::fill(mImgBuffer.begin(), mImgBuffer.end(), 0);
     pango_cairo_show_layout(mCairoContext, mLayout);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, mTextureId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, &mImgBuffer[0]);
-    glBindVertexArray(mVertexArray);
-    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
-    GLfloat vertexes[4][3] = {
-        {0, 0, 0},
-        {(float)mWidth, 0, 0},
-        {0, (float)mHeight, 0},
-        {(float)mWidth, (float)mHeight, 0},
-    };
-    glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * 4 * sizeof(GLfloat), vertexes);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mSurfaceWidth, mSurfaceHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, &mImgBuffer[0]);
 
     GLenum err = glGetError();
     assert(err == GL_NO_ERROR);
