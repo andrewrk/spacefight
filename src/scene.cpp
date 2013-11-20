@@ -90,20 +90,23 @@ Scene::Scene() : mSkybox(0)
     m3DRenderContext.materialSpecularShininess = 100.0f;
 
 
-
-    m2DRenderContext.projection = glm::ortho(0.0f, (float)mScreenWidth,
-        (float)mScreenHeight, 0.0f);
-    m2DRenderContext.model = glm::mat4(1.0);
-    m2DRenderContext.view = glm::mat4(1.0);
-    m2DRenderContext.modelView = m2DRenderContext.view * m2DRenderContext.model;
-    m2DRenderContext.mvp = m2DRenderContext.projection * m2DRenderContext.modelView;
-
-
     mMonkeyModel = new Model("models/monkey.obj");
 
     mFpsLabel = new Label();
     mFpsLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     mFpsLabel->setFontFace("Sans 12");
+    mFpsLabel->setText("1234");
+    mFpsLabel->update();
+
+    m2DRenderContext.projection = glm::ortho(0.0f, (float)mScreenWidth,
+        (float)mScreenHeight, 0.0f);
+    m2DRenderContext.model = glm::mat4(1.0);
+    m2DRenderContext.model = glm::translate(m2DRenderContext.model, glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
+    m2DRenderContext.view = glm::mat4(1.0);
+    m2DRenderContext.modelView = m2DRenderContext.view * m2DRenderContext.model;
+    m2DRenderContext.mvp = m2DRenderContext.projection * m2DRenderContext.modelView;
+
+
 
     mSkybox = new Skybox("assets", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png");
 
