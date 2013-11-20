@@ -44,7 +44,7 @@ Scene::Scene()
 
     mWindow = SDL_CreateWindow("Space Fight 3D!",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        mScreenWidth, mScreenHeight, SDL_WINDOW_OPENGL);
+        mScreenWidth, mScreenHeight, SDL_WINDOW_OPENGL|SDL_WINDOW_FULLSCREEN_DESKTOP);
     if (!mWindow) {
         std::cerr << "Unable to create window\n";
         exit(1);
@@ -207,7 +207,7 @@ void Scene::update(float /* dt */, float dx)
     mCameraForward = glm::rotate(mCameraForward, deltaAngle, leftVector);
     mCameraUp = glm::cross(leftVector, mCameraForward);
 
-    deltaAngle = -joyZ * joyZ * joyZ * CAMERA_ROTATION_SPEED * dx;
+    deltaAngle = joyZ * joyZ * joyZ * CAMERA_ROTATION_SPEED * dx;
     mCameraUp = glm::rotate(mCameraUp, deltaAngle, mCameraForward);
 
     mCameraPosition += mCameraVelocity * dx;
