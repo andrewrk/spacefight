@@ -18,6 +18,12 @@ public:
     void unbind();
 
     GLuint uniformId(const std::string &name);
+    void setUniform(GLuint uniformId, int value);
+    void setUniform(GLuint uniformId, const glm::vec3 &value);
+    void setUniform(GLuint uniformId, const glm::vec4 &value);
+    void setUniform(GLuint uniformId, const glm::mat4 &value);
+    void setUniform(GLuint uniformId, const glm::mat3 &value);
+
     GLint attribLocation(const std::string &name);
 
     class UniformBlock {
@@ -39,6 +45,8 @@ public:
     };
 
     std::unique_ptr<UniformBlock> getUniformBlock(const std::string &blockName, const GLchar **fieldNames, GLuint bindingId);
+
+    void debugPrintAttributes();
 
 private:
     GLuint mProgramId;

@@ -13,7 +13,8 @@
 
 #include "texture.h"
 #include "skybox.h"
-#include "plane.h"
+
+#include "label.h"
 
 class Scene
 {
@@ -33,9 +34,8 @@ private:
 
     Skybox *mSkybox;
 
-    Plane *mPlane;
 
-
+    Label *mLabel;
 
     std::vector<SDL_Joystick*> mJoysticks;
 

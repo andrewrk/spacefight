@@ -99,7 +99,6 @@ Model::Model(const std::string &filename, const RenderContext &renderContext) :
             glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GLfloat), mesh->mVertices, GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(vertexPositionIndex);
-            glBindBuffer(GL_ARRAY_BUFFER, positionBufferIndex);
             glVertexAttribPointer(vertexPositionIndex, 3, GL_FLOAT, GL_FALSE, 0, NULL);
         }
 
@@ -109,7 +108,6 @@ Model::Model(const std::string &filename, const RenderContext &renderContext) :
             glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GLfloat), mesh->mNormals, GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(vertexNormalIndex);
-            glBindBuffer(GL_ARRAY_BUFFER, normalBufferIndex);
             glVertexAttribPointer(vertexNormalIndex, 3, GL_FLOAT, GL_FALSE, 0, NULL);
         }
 
@@ -122,10 +120,10 @@ Model::Model(const std::string &filename, const RenderContext &renderContext) :
 void Model::draw()
 {
     mShader->bind();
-    glUniformMatrix4fv(mShaderMvp, 1, GL_FALSE, &mRenderContext.mvp[0][0]);
-    glUniformMatrix4fv(mShaderModelViewMatrix, 1, GL_FALSE, &mRenderContext.modelView[0][0]);
-    glUniformMatrix4fv(mShaderProjectionMatrix, 1, GL_FALSE, &mRenderContext.projection[0][0]);
-    glUniformMatrix3fv(mShaderNormalMatrix, 1, GL_FALSE, &mRenderContext.normal[0][0]);
+    mShader->setUniform(mShaderMvp, mRenderContext.mvp);
+    mShader->setUniform(mShaderModelViewMatrix, mRenderContext.modelView);
+    mShader->setUniform(mShaderProjectionMatrix, mRenderContext.projection);
+    mShader->setUniform(mShaderNormalMatrix, mRenderContext.normal);
 
     mLightBlock->set(LIGHT_LA, mRenderContext.lightIntensityAmbient);
     mLightBlock->set(LIGHT_LD, mRenderContext.lightIntensityDiffuse);

@@ -14,7 +14,7 @@ SOURCES += \
     src/shadermanager.cpp \
     src/texture.cpp \
     src/skybox.cpp \
-    src/plane.cpp
+    src/label.cpp
 
 
 HEADERS += \
@@ -25,7 +25,7 @@ HEADERS += \
     src/rendercontext.h \
     src/texture.h \
     src/skybox.h \
-    src/plane.h
+    src/label.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2
@@ -35,6 +35,7 @@ unix: PKGCONFIG += glew
 unix: PKGCONFIG += gl
 
 unix: PKGCONFIG += assimp
+unix: PKGCONFIG += pangocairo
 
 unix: LIBS += -lSDL2_image
 
@@ -43,5 +44,7 @@ OTHER_FILES += \
     src/shaders/basic.frag \
     src/shaders/basic.vert \
     src/shaders/texture.vert \
-    src/shaders/texture.frag
+    src/shaders/texture.frag \
+    src/shaders/text.vert \
+    src/shaders/text.frag
 

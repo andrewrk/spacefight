@@ -1,5 +1,7 @@
 #include "texture.h"
 
+#include <cassert>
+
 Texture::Texture(std::string file)
     :mID(0), mPath(file)
 {
@@ -74,7 +76,7 @@ bool Texture::load()
         }
 
         //Copies the pixels
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image->w, inversed->h, 0, format, GL_UNSIGNED_BYTE, inversed->pixels);
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, inversed->w, inversed->h, 0, format, GL_UNSIGNED_BYTE, inversed->pixels);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //Closest
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //Further away
@@ -84,6 +86,10 @@ bool Texture::load()
     }
     glBindTexture(GL_TEXTURE_2D, 0);
     SDL_FreeSurface(inversed);
+
+    GLenum err = glGetError();
+    assert(err == GL_NO_ERROR);
+
     return true;
 }
 

@@ -20,6 +20,9 @@ struct RenderContext {
     glm::vec3 materialReflectivityDiffuse;
     glm::vec3 materialReflectivitySpecular;
     float materialSpecularShininess;
+
+    int screenWidth;
+    int screenHeight;
 };
 
 #endif // RENDERCONTEXT_H

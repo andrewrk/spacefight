@@ -94,6 +94,31 @@ GLuint Shader::uniformId(const std::string &name)
     return glGetUniformLocation(mProgramId, name.c_str());
 }
 
+void Shader::setUniform(GLuint uniformId, int value)
+{
+    glUniform1i(uniformId, value);
+}
+
+void Shader::setUniform(GLuint uniformId, const glm::vec3 &value)
+{
+    glUniform3fv(uniformId, 1, &value[0]);
+}
+
+void Shader::setUniform(GLuint uniformId, const glm::vec4 &value)
+{
+    glUniform4fv(uniformId, 1, &value[0]);
+}
+
+void Shader::setUniform(GLuint uniformId, const glm::mat4 &value)
+{
+    glUniformMatrix4fv(uniformId, 1, GL_FALSE, &value[0][0]);
+}
+
+void Shader::setUniform(GLuint uniformId, const glm::mat3 &value)
+{
+    glUniformMatrix3fv(uniformId, 1, GL_FALSE, &value[0][0]);
+}
+
 GLint Shader::attribLocation(const std::string &name)
 {
     return glGetAttribLocation(mProgramId, name.c_str());
@@ -172,6 +197,32 @@ std::unique_ptr<Shader::UniformBlock> Shader::getUniformBlock(const std::string 
     }
 
     return uniformBlockPtr;
+}
+
+void Shader::debugPrintAttributes()
+{
+    GLint maxLength, nAttribs;
+    glGetProgramiv(mProgramId, GL_ACTIVE_ATTRIBUTES, &nAttribs);
+    glGetProgramiv(mProgramId, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxLength);
+
+    GLchar *name = new GLchar[maxLength];
+
+    std::cerr << "Index, Name\n";
+    std::cerr << "----------\n";
+    GLint written, size, location;
+    GLenum type;
+    for (int i = 0; i < nAttribs; i += 1) {
+        glGetActiveAttrib(mProgramId, i, maxLength, &written, &size, &type, name);
+        location = glGetAttribLocation(mProgramId, name);
+        std::cerr << location << ", " << name << "\n";
+    }
+
+    delete name;
+
+
+    GLenum err = glGetError();
+    assert(err == GL_NO_ERROR);
+
 }
 
 void Shader::UniformBlock::set(int index, float value)

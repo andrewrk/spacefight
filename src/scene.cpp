@@ -11,7 +11,7 @@
 
 
 
-const double CAMERA_SPEED = 0.02;
+const double CAMERA_SPEED = 0.08;
 const double CAMERA_ROTATION_SPEED = 0.02;
 
 Scene::Scene() : mSkybox(0)
@@ -28,11 +28,12 @@ Scene::Scene() : mSkybox(0)
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    int width = 1366;
-    int height = 768;
+    mRenderContext.screenWidth = 1366;
+    mRenderContext.screenHeight = 768;
 
     mWindow = SDL_CreateWindow("Space Fight 3D!",
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_OPENGL);
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        mRenderContext.screenWidth, mRenderContext.screenHeight, SDL_WINDOW_OPENGL);
     if (!mWindow) {
         std::cerr << "Unable to create window\n";
         exit(1);
@@ -51,17 +52,20 @@ Scene::Scene() : mSkybox(0)
     // we expect to maybe get invalid enum due to glewExperimental
     assert(err == GL_INVALID_ENUM || err == GL_NO_ERROR);
 
+    Label::init();
+
     // set buffer swap with monitor's vertical refresh rate
     SDL_GL_SetSwapInterval(1);
 
-    glEnable(GL_DEPTH_TEST);
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glDepthFunc(GL_LESS);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
     mCameraDirection = glm::vec3(0, 1.0, 0);
 
-    mRenderContext.projection = glm::perspective(60.0, width / (double)height, 0.1, 100.0);
     mRenderContext.model = glm::mat4(1.0);
     mRenderContext.lightPosition = glm::vec4(1.0, -3.0, 0.0, 1.0);
     mRenderContext.lightIntensityAmbient = glm::vec3(0.2, 0.2, 0.2);
@@ -74,7 +78,19 @@ Scene::Scene() : mSkybox(0)
 
     mMonkeyModel = new Model("models/monkey.obj", mRenderContext);
 
+    mLabel = new Label(mRenderContext);
+    mLabel->setText("aoeuaoeu");
+    mLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    mLabel->setFontFace("Sans Bold 38");
+    mLabel->update();
 
+    mSkybox = new Skybox("assets", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png", mRenderContext);
+
+    initJoystick();
+
+
+    err = glGetError();
+    assert(err == GL_NO_ERROR);
 }
 
 Scene::~Scene()
@@ -88,11 +104,6 @@ Scene::~Scene()
 }
 
 int Scene::start() {
-
-    initJoystick();
-
-    mSkybox = new Skybox("assets", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png", mRenderContext);
-
     while(mRunning)
     {
         update(1.0);
@@ -150,7 +161,6 @@ void Scene::update(double dx)
                 glm::vec3(0.0, 0.0, 1.0));
 
     mRenderContext.modelView = mRenderContext.view * mRenderContext.model;
-    mRenderContext.mvp = mRenderContext.projection * mRenderContext.modelView;
     mRenderContext.normal = glm::inverseTranspose(glm::mat3(mRenderContext.modelView));
 
 }
@@ -158,9 +168,22 @@ void Scene::update(double dx)
 void Scene::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+    mRenderContext.projection = glm::perspective(60.0,
+        mRenderContext.screenWidth / (double)mRenderContext.screenHeight, 0.1, 100.0);
+    mRenderContext.mvp = mRenderContext.projection * mRenderContext.modelView;
 
     mMonkeyModel->draw();
     mSkybox->render();
+
+    glDisable(GL_DEPTH_TEST);
+
+    mRenderContext.projection = glm::ortho(0.0f, (float)mRenderContext.screenWidth,
+        (float)mRenderContext.screenHeight, 0.0f);
+    mRenderContext.mvp = mRenderContext.projection;
+
+    mLabel->draw();
 }
 
 void Scene::flushEvents() {
