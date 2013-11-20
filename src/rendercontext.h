@@ -2,6 +2,7 @@
 #define RENDERCONTEXT_H
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 
 struct RenderContext {
     glm::mat4 projection;
@@ -20,6 +21,12 @@ struct RenderContext {
     glm::vec3 materialReflectivityDiffuse;
     glm::vec3 materialReflectivitySpecular;
     float materialSpecularShininess;
+
+    inline void calcMvp() {
+        modelView = view * model;
+        mvp = projection * modelView;
+        normal = glm::inverseTranspose(glm::mat3(modelView));
+    }
 };
 
 #endif // RENDERCONTEXT_H

@@ -42,12 +42,14 @@ private:
     float mMaxSpf;
     float mFps;
     Label *mFpsLabel;
+    Label *mEngineLabel;
 
     std::vector<SDL_Joystick*> mJoysticks;
 
     glm::vec3 mCameraPosition;
     glm::vec3 mCameraUp; // direction vector
     glm::vec3 mCameraForward; // direction vector
+    glm::vec3 mCameraVelocity;
 
     void flushEvents();
     void update(float dt, float dx);

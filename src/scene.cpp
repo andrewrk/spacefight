@@ -1,7 +1,6 @@
 #include "scene.h"
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <iostream>
 
@@ -25,6 +24,7 @@ const float TARGET_SPF = 1.0 / TARGET_FPS;
 const float FPS_SMOOTHNESS = 0.9;
 const float FPS_ONE_FRAME_WEIGHT = 1.0 - FPS_SMOOTHNESS;
 
+const float ENGINE_THRUST = 0.001;
 
 Scene::Scene()
 {
@@ -79,6 +79,7 @@ Scene::Scene()
     mCameraForward = glm::vec3(0, -1.0, 0);
     mCameraUp = glm::vec3(0, 0, 1);
     mCameraPosition = glm::vec3(0, 10.0, 0);
+    mCameraVelocity = glm::vec3(0, 0, 0);
 
     m3DRenderContext.projection = glm::perspective(60.0f,
         mScreenWidth / (float)mScreenHeight, 0.1f, 100.0f);
@@ -98,17 +99,15 @@ Scene::Scene()
     mFpsLabel = new Label();
     mFpsLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     mFpsLabel->setFontFace("Sans 12");
-    mFpsLabel->setText("1234");
-    mFpsLabel->update();
+
+    mEngineLabel = new Label();
+    mEngineLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    mEngineLabel->setFontFace("Sans 12");
 
     m2DRenderContext.projection = glm::ortho(0.0f, (float)mScreenWidth,
         (float)mScreenHeight, 0.0f);
-    m2DRenderContext.model = glm::mat4(1.0);
-    m2DRenderContext.model = glm::translate(m2DRenderContext.model, glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
     m2DRenderContext.view = glm::mat4(1.0);
-    m2DRenderContext.modelView = m2DRenderContext.view * m2DRenderContext.model;
-    m2DRenderContext.mvp = m2DRenderContext.projection * m2DRenderContext.modelView;
-
+    m2DRenderContext.calcMvp();
 
 
     mSkybox = new Skybox("assets", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png");
@@ -157,6 +156,11 @@ int Scene::start() {
     return 0;
 }
 
+static float clamp(float min, float value, float max)
+{
+    return value < min ? min : (value > max ? max : value);
+}
+
 void Scene::update(float /* dt */, float dx)
 {
     flushEvents();
@@ -164,6 +168,7 @@ void Scene::update(float /* dt */, float dx)
     float joyX = 0.0;
     float joyY = 0.0;
     float joyZ = 0.0;
+    float joyEngine = 0.0;
     for (unsigned int i = 0; i < mJoysticks.size(); i += 1) {
         SDL_Joystick *joystick = mJoysticks[i];
 
@@ -175,32 +180,53 @@ void Scene::update(float /* dt */, float dx)
 
         val = SDL_JoystickGetAxis(joystick, 2);
         joyZ += (float) val / (float) INT16_MAX;
+
+        val = SDL_JoystickGetAxis(joystick, 3);
+        joyEngine -= (float) val / (float) INT16_MAX;
     }
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     if (state[SDL_SCANCODE_LEFT]) joyX -= 1.0;
     if (state[SDL_SCANCODE_RIGHT]) joyX += 1.0;
     if (state[SDL_SCANCODE_UP]) joyY += 1.0;
     if (state[SDL_SCANCODE_DOWN]) joyY -= 1.0;
-    if (state[SDL_SCANCODE_W]) joyZ += 1.0;
-    if (state[SDL_SCANCODE_S]) joyZ -= 1.0;
+    if (state[SDL_SCANCODE_A]) joyZ += 1.0;
+    if (state[SDL_SCANCODE_D]) joyZ -= 1.0;
+    if (state[SDL_SCANCODE_W]) joyEngine += 1.0;
+    if (state[SDL_SCANCODE_S]) joyEngine -= 1.0;
 
+    joyX = clamp(-1.0f, joyX, 1.0f);
+    joyY = clamp(-1.0f, joyY, 1.0f);
+    joyZ = clamp(-1.0f, joyZ, 1.0f);
+    joyEngine = clamp(-1.0f, joyEngine, 1.0f);
+
+    // x^3 gives us a nice joystick response curve
     float deltaAngle = -joyX * joyX * joyX * CAMERA_ROTATION_SPEED * dx;
     mCameraForward = glm::rotate(mCameraForward, deltaAngle, mCameraUp);
     glm::vec3 leftVector = glm::cross(mCameraForward, mCameraUp);
+
     deltaAngle = joyY * joyY * joyY * CAMERA_ROTATION_SPEED * dx;
     mCameraForward = glm::rotate(mCameraForward, deltaAngle, leftVector);
     mCameraUp = glm::cross(leftVector, mCameraForward);
 
-    m3DRenderContext.view = glm::lookAt( mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
+    deltaAngle = -joyZ * joyZ * joyZ * CAMERA_ROTATION_SPEED * dx;
+    mCameraUp = glm::rotate(mCameraUp, deltaAngle, mCameraForward);
 
-    m3DRenderContext.modelView = m3DRenderContext.view * m3DRenderContext.model;
-    m3DRenderContext.normal = glm::inverseTranspose(glm::mat3(m3DRenderContext.modelView));
-    m3DRenderContext.mvp = m3DRenderContext.projection * m3DRenderContext.modelView;
+    mCameraPosition += mCameraVelocity * dx;
+
+    mCameraVelocity += mCameraForward * (ENGINE_THRUST * joyEngine * dx);
+
+    m3DRenderContext.view = glm::lookAt(mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
+    m3DRenderContext.calcMvp();
 
     std::stringstream ss;
     ss << mFps;
     mFpsLabel->setText(ss.str());
     mFpsLabel->update();
+
+    ss.str("");
+    ss << joyEngine;
+    mEngineLabel->setText(ss.str());
+    mEngineLabel->update();
 }
 
 void Scene::draw()
@@ -212,7 +238,16 @@ void Scene::draw()
     mSkybox->draw(m3DRenderContext);
 
     glDisable(GL_DEPTH_TEST);
+    m2DRenderContext.model = glm::mat4(1.0);
+    m2DRenderContext.model = glm::translate(m2DRenderContext.model, glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
+    m2DRenderContext.calcMvp();
     mFpsLabel->draw(m2DRenderContext);
+
+    m2DRenderContext.model = glm::mat4(1.0);
+    m2DRenderContext.model = glm::translate(m2DRenderContext.model,
+        glm::vec3(mScreenWidth - mEngineLabel->mWidth, mScreenHeight - mEngineLabel->mHeight, 0));
+    m2DRenderContext.calcMvp();
+    mEngineLabel->draw(m2DRenderContext);
 }
 
 void Scene::flushEvents() {
