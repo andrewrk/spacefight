@@ -2,6 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <iostream>
 
 #include <limits>
@@ -14,18 +15,18 @@
 
 
 
-const double CAMERA_SPEED = 0.08;
-const double CAMERA_ROTATION_SPEED = 0.02;
+const float CAMERA_SPEED = 0.08;
+const float CAMERA_ROTATION_SPEED = 1.5;
 
-const double EPSILON = 0.0000000001;
-const double MAX_DISPLAY_FPS = 90000;
-const double TARGET_FPS = 60.0;
-const double TARGET_SPF = 1.0 / TARGET_FPS;
-const double FPS_SMOOTHNESS = 0.9;
-const double FPS_ONE_FRAME_WEIGHT = 1.0 - FPS_SMOOTHNESS;
+const float EPSILON = 0.0000000001;
+const float MAX_DISPLAY_FPS = 90000;
+const float TARGET_FPS = 60.0;
+const float TARGET_SPF = 1.0 / TARGET_FPS;
+const float FPS_SMOOTHNESS = 0.9;
+const float FPS_ONE_FRAME_WEIGHT = 1.0 - FPS_SMOOTHNESS;
 
 
-Scene::Scene() : mSkybox(0)
+Scene::Scene()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
         std::cerr << "Unable to initialize SDL\n";
@@ -75,7 +76,9 @@ Scene::Scene() : mSkybox(0)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-    mCameraDirection = glm::vec3(0, 1.0, 0);
+    mCameraForward = glm::vec3(0, -1.0, 0);
+    mCameraUp = glm::vec3(0, 0, 1);
+    mCameraPosition = glm::vec3(0, 10.0, 0);
 
     m3DRenderContext.projection = glm::perspective(60.0f,
         mScreenWidth / (float)mScreenHeight, 0.1f, 100.0f);
@@ -128,7 +131,7 @@ Scene::~Scene()
     SDL_DestroyWindow(mWindow);
 }
 
-void Scene::setMinFps(double fps)
+void Scene::setMinFps(float fps)
 {
     mMaxSpf = 1 / fps;
 }
@@ -138,15 +141,15 @@ int Scene::start() {
     while(mRunning)
     {
         std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> delta = std::chrono::duration_cast<std::chrono::duration<double>>(now - previousTime);
+        std::chrono::duration<float> delta = std::chrono::duration_cast<std::chrono::duration<float>>(now - previousTime);
         previousTime = now;
-        double dt = delta.count();
+        float dt = delta.count();
         if (dt < EPSILON) dt = EPSILON;
         if (dt > mMaxSpf) dt = mMaxSpf;
-        double dx = dt / TARGET_SPF;
+        float dx = dt / TARGET_SPF;
         update(dt, dx);
         draw();
-        double fps = 1 / delta.count();
+        float fps = 1 / delta.count();
         fps = fps < MAX_DISPLAY_FPS ? fps : MAX_DISPLAY_FPS;
         mFps = mFps * FPS_SMOOTHNESS + fps * FPS_ONE_FRAME_WEIGHT;
         SDL_GL_SwapWindow(mWindow);
@@ -154,52 +157,41 @@ int Scene::start() {
     return 0;
 }
 
-void Scene::update(double /* dt */, double dx)
+void Scene::update(float /* dt */, float dx)
 {
     flushEvents();
 
-    double joyX = 0.0;
-    double joyY = 0.0;
-    double joyZ = 0.0;
+    float joyX = 0.0;
+    float joyY = 0.0;
+    float joyZ = 0.0;
     for (unsigned int i = 0; i < mJoysticks.size(); i += 1) {
         SDL_Joystick *joystick = mJoysticks[i];
 
         Sint16 val = SDL_JoystickGetAxis(joystick, 0);
-        joyX += (double) val / (double) INT16_MAX;
+        joyX += (float) val / (float) INT16_MAX;
 
         val = SDL_JoystickGetAxis(joystick, 1);
-        joyY += (double) val / (double) INT16_MAX;
+        joyY += (float) val / (float) INT16_MAX;
 
         val = SDL_JoystickGetAxis(joystick, 2);
-        joyZ += (double) val / (double) INT16_MAX;
+        joyZ += (float) val / (float) INT16_MAX;
     }
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     if (state[SDL_SCANCODE_LEFT]) joyX -= 1.0;
     if (state[SDL_SCANCODE_RIGHT]) joyX += 1.0;
-    if (state[SDL_SCANCODE_UP]) joyZ -= 1.0;
-    if (state[SDL_SCANCODE_DOWN]) joyZ += 1.0;
+    if (state[SDL_SCANCODE_UP]) joyY += 1.0;
+    if (state[SDL_SCANCODE_DOWN]) joyY -= 1.0;
+    if (state[SDL_SCANCODE_W]) joyZ += 1.0;
+    if (state[SDL_SCANCODE_S]) joyZ -= 1.0;
 
-    if (state[SDL_SCANCODE_W]) m3DRenderContext.lightPosition.z += 0.1;
-    if (state[SDL_SCANCODE_S]) m3DRenderContext.lightPosition.z -= 0.1;
+    float deltaAngle = -joyX * joyX * joyX * CAMERA_ROTATION_SPEED * dx;
+    mCameraForward = glm::rotate(mCameraForward, deltaAngle, mCameraUp);
+    glm::vec3 leftVector = glm::cross(mCameraForward, mCameraUp);
+    deltaAngle = joyY * joyY * joyY * CAMERA_ROTATION_SPEED * dx;
+    mCameraForward = glm::rotate(mCameraForward, deltaAngle, leftVector);
+    mCameraUp = glm::cross(leftVector, mCameraForward);
 
-
-    mCameraDistance += joyZ * CAMERA_SPEED * dx;
-
-    glm::vec3 eye = mCameraDirection * mCameraDistance;
-
-    double angle = atan2(mCameraDirection[1], mCameraDirection[0]);
-    angle += joyX * CAMERA_ROTATION_SPEED * dx;
-
-    eye[0] = mCameraDistance * cos(angle);
-    eye[1] = mCameraDistance * sin(angle);
-
-    mCameraDirection = glm::normalize(eye);
-
-
-    m3DRenderContext.view = glm::lookAt(
-                eye,
-                glm::vec3(0.0, 0.0, 0.0),
-                glm::vec3(0.0, 0.0, 1.0));
+    m3DRenderContext.view = glm::lookAt( mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
 
     m3DRenderContext.modelView = m3DRenderContext.view * m3DRenderContext.model;
     m3DRenderContext.normal = glm::inverseTranspose(glm::mat3(m3DRenderContext.modelView));
