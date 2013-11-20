@@ -28,8 +28,11 @@ private:
     SDL_GLContext mContext;
     SDL_Window *mWindow;
 
-    RenderContext mRenderContext;
+    RenderContext m3DRenderContext;
+    RenderContext m2DRenderContext;
 
+    int mScreenWidth;
+    int mScreenHeight;
 
     Model *mMonkeyModel;
 

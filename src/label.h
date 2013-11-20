@@ -1,6 +1,8 @@
 #ifndef LABEL_H
 #define LABEL_H
 
+#include "rendercontext.h"
+
 #include <string>
 #include <vector>
 
@@ -10,12 +12,11 @@
 
 #include <pango/pangocairo.h>
 
-#include "rendercontext.h"
 
 class Label
 {
 public:
-    Label(const RenderContext &renderContext);
+    Label();
     ~Label();
 
     static void init();
@@ -27,7 +28,7 @@ public:
     // call this to make your settings changes take effect
     void update();
 
-    void draw();
+    void draw(const RenderContext &renderContext);
 
     // actual text width
     int mWidth;
@@ -41,7 +42,6 @@ private:
     GLuint mTexCoordBuffer;
 
     glm::vec4 mColor;
-    const RenderContext &mRenderContext;
 
     std::vector<unsigned char> mImgBuffer;
     cairo_surface_t *mSurface;

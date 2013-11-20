@@ -19,9 +19,9 @@
 class Model
 {
 public:
-    Model(const std::string &filename, const RenderContext &renderContext);
+    Model(const std::string &filename);
 
-    void draw();
+    void draw(const RenderContext &renderContext);
 
 private:
     Shader *mShader;
@@ -40,8 +40,6 @@ private:
     std::vector<GLuint> mVertexArrays;
     std::vector<GLuint> mVertexIndexBuffers;
     std::vector<unsigned int> mIndexCounts;
-
-    const RenderContext &mRenderContext;
 
     void importNode(aiNode *node);
 

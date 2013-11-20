@@ -39,12 +39,12 @@ Scene::Scene() : mSkybox(0)
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    mRenderContext.screenWidth = 1366;
-    mRenderContext.screenHeight = 768;
+    mScreenWidth = 1366;
+    mScreenHeight = 768;
 
     mWindow = SDL_CreateWindow("Space Fight 3D!",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        mRenderContext.screenWidth, mRenderContext.screenHeight, SDL_WINDOW_OPENGL);
+        mScreenWidth, mScreenHeight, SDL_WINDOW_OPENGL);
     if (!mWindow) {
         std::cerr << "Unable to create window\n";
         exit(1);
@@ -77,23 +77,35 @@ Scene::Scene() : mSkybox(0)
 
     mCameraDirection = glm::vec3(0, 1.0, 0);
 
-    mRenderContext.model = glm::mat4(1.0);
-    mRenderContext.lightPosition = glm::vec4(1.0, -3.0, 0.0, 1.0);
-    mRenderContext.lightIntensityAmbient = glm::vec3(0.2, 0.2, 0.2);
-    mRenderContext.lightIntensityDiffuse = glm::vec3(0.5, 0.5, 0.5);
-    mRenderContext.lightIntensitySpecular = glm::vec3(0.8, 0.8, 0.8);
-    mRenderContext.materialReflectivityAmbient = glm::vec3(0.5, 0.5, 0.5);
-    mRenderContext.materialReflectivityDiffuse = glm::vec3(0.5, 0.5, 0.5);
-    mRenderContext.materialReflectivitySpecular = glm::vec3(0.5, 0.5, 0.5);
-    mRenderContext.materialSpecularShininess = 100.0f;
+    m3DRenderContext.projection = glm::perspective(60.0f,
+        mScreenWidth / (float)mScreenHeight, 0.1f, 100.0f);
+    m3DRenderContext.model = glm::mat4(1.0);
+    m3DRenderContext.lightPosition = glm::vec4(1.0, -3.0, 0.0, 1.0);
+    m3DRenderContext.lightIntensityAmbient = glm::vec3(0.2, 0.2, 0.2);
+    m3DRenderContext.lightIntensityDiffuse = glm::vec3(0.5, 0.5, 0.5);
+    m3DRenderContext.lightIntensitySpecular = glm::vec3(0.8, 0.8, 0.8);
+    m3DRenderContext.materialReflectivityAmbient = glm::vec3(0.5, 0.5, 0.5);
+    m3DRenderContext.materialReflectivityDiffuse = glm::vec3(0.5, 0.5, 0.5);
+    m3DRenderContext.materialReflectivitySpecular = glm::vec3(0.5, 0.5, 0.5);
+    m3DRenderContext.materialSpecularShininess = 100.0f;
 
-    mMonkeyModel = new Model("models/monkey.obj", mRenderContext);
 
-    mFpsLabel = new Label(mRenderContext);
+
+    m2DRenderContext.projection = glm::ortho(0.0f, (float)mScreenWidth,
+        (float)mScreenHeight, 0.0f);
+    m2DRenderContext.model = glm::mat4(1.0);
+    m2DRenderContext.view = glm::mat4(1.0);
+    m2DRenderContext.modelView = m2DRenderContext.view * m2DRenderContext.model;
+    m2DRenderContext.mvp = m2DRenderContext.projection * m2DRenderContext.modelView;
+
+
+    mMonkeyModel = new Model("models/monkey.obj");
+
+    mFpsLabel = new Label();
     mFpsLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     mFpsLabel->setFontFace("Sans 12");
 
-    mSkybox = new Skybox("assets", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png", mRenderContext);
+    mSkybox = new Skybox("assets", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png");
 
     initJoystick();
 
@@ -164,8 +176,8 @@ void Scene::update(double /* dt */, double dx)
     if (state[SDL_SCANCODE_UP]) joyZ -= 1.0;
     if (state[SDL_SCANCODE_DOWN]) joyZ += 1.0;
 
-    if (state[SDL_SCANCODE_W]) mRenderContext.lightPosition.z += 0.1;
-    if (state[SDL_SCANCODE_S]) mRenderContext.lightPosition.z -= 0.1;
+    if (state[SDL_SCANCODE_W]) m3DRenderContext.lightPosition.z += 0.1;
+    if (state[SDL_SCANCODE_S]) m3DRenderContext.lightPosition.z -= 0.1;
 
 
     mCameraDistance += joyZ * CAMERA_SPEED * dx;
@@ -181,13 +193,14 @@ void Scene::update(double /* dt */, double dx)
     mCameraDirection = glm::normalize(eye);
 
 
-    mRenderContext.view = glm::lookAt(
+    m3DRenderContext.view = glm::lookAt(
                 eye,
                 glm::vec3(0.0, 0.0, 0.0),
                 glm::vec3(0.0, 0.0, 1.0));
 
-    mRenderContext.modelView = mRenderContext.view * mRenderContext.model;
-    mRenderContext.normal = glm::inverseTranspose(glm::mat3(mRenderContext.modelView));
+    m3DRenderContext.modelView = m3DRenderContext.view * m3DRenderContext.model;
+    m3DRenderContext.normal = glm::inverseTranspose(glm::mat3(m3DRenderContext.modelView));
+    m3DRenderContext.mvp = m3DRenderContext.projection * m3DRenderContext.modelView;
 
     std::stringstream ss;
     ss << mFps;
@@ -200,20 +213,11 @@ void Scene::draw()
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    mRenderContext.projection = glm::perspective(60.0,
-        mRenderContext.screenWidth / (double)mRenderContext.screenHeight, 0.1, 100.0);
-    mRenderContext.mvp = mRenderContext.projection * mRenderContext.modelView;
-
-    mMonkeyModel->draw();
-    mSkybox->render();
+    mMonkeyModel->draw(m3DRenderContext);
+    mSkybox->draw(m3DRenderContext);
 
     glDisable(GL_DEPTH_TEST);
-
-    mRenderContext.projection = glm::ortho(0.0f, (float)mRenderContext.screenWidth,
-        (float)mRenderContext.screenHeight, 0.0f);
-    mRenderContext.mvp = mRenderContext.projection;
-
-    mFpsLabel->draw();
+    mFpsLabel->draw(m2DRenderContext);
 }
 
 void Scene::flushEvents() {

@@ -23,10 +23,9 @@ void Label::init()
 
 }
 
-Label::Label(const RenderContext &renderContext) :
+Label::Label() :
     mWidth(0),
     mHeight(0),
-    mRenderContext(renderContext),
     mSurfaceWidth(0),
     mSurfaceHeight(0)
 {
@@ -173,13 +172,13 @@ void Label::update()
     assert(err == GL_NO_ERROR);
 }
 
-void Label::draw()
+void Label::draw(const RenderContext &renderContext)
 {
     textShader->bind();
 
     textShader->setUniform(colorUniformId, mColor);
     textShader->setUniform(texUniformId, 0);
-    textShader->setUniform(mvpUniformId, mRenderContext.mvp);
+    textShader->setUniform(mvpUniformId, renderContext.mvp);
 
     glBindVertexArray(mVertexArray);
     glActiveTexture(GL_TEXTURE0);

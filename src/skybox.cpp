@@ -1,8 +1,24 @@
 #include "skybox.h"
 
-Skybox::Skybox(const std::string folder, const std::string front, const std::string back, const std::string top, const std::string bottom, const std::string left, const std::string right, const RenderContext &renderContext)
-    :mFolder(folder), mFrontPath(front), mBackPath(back), mTopPath(top), mBottomPath(bottom), mLeftPath(left), mRightPath(right), mTextures(0), mVAOid(0), mVBOid(0), mSizeTextureBytes(72 * sizeof(float)),
-      mSizeVerticeBytes(108 * sizeof(float)), mRenderContext(renderContext)
+Skybox::Skybox(const std::string folder,
+               const std::string front,
+               const std::string back,
+               const std::string top,
+               const std::string bottom,
+               const std::string left,
+               const std::string right) :
+    mFolder(folder),
+    mFrontPath(front),
+    mBackPath(back),
+    mTopPath(top),
+    mBottomPath(bottom),
+    mLeftPath(left),
+    mRightPath(right),
+    mTextures(0),
+    mVAOid(0),
+    mVBOid(0),
+    mSizeTextureBytes(72 * sizeof(float)),
+    mSizeVerticeBytes(108 * sizeof(float))
 {
     loadTextures();
     mShader = ShaderManager::getShader("texture");
@@ -91,7 +107,7 @@ void Skybox::loadTextures()
 }
 
 
-void Skybox::render()
+void Skybox::draw(const RenderContext &renderContext)
 {
     //Skybox will be rendered before everything else, but with depth buffer writing disabled
     //(glDepthMask(0) does just that). What shall we achieve with this? With the first thing rendered,
@@ -102,9 +118,9 @@ void Skybox::render()
 
     mShader->bind();
 
-    glUniformMatrix4fv(mShaderMvp, 1, GL_FALSE, &mRenderContext.mvp[0][0]);
-    glUniformMatrix4fv(mShaderModelViewMatrix, 1, GL_FALSE, &mRenderContext.modelView[0][0]);
-    glUniformMatrix4fv(mShaderProjectionMatrix, 1, GL_FALSE, &mRenderContext.projection[0][0]);
+    glUniformMatrix4fv(mShaderMvp, 1, GL_FALSE, &renderContext.mvp[0][0]);
+    glUniformMatrix4fv(mShaderModelViewMatrix, 1, GL_FALSE, &renderContext.modelView[0][0]);
+    glUniformMatrix4fv(mShaderProjectionMatrix, 1, GL_FALSE, &renderContext.projection[0][0]);
 
     glDepthMask(0);
 

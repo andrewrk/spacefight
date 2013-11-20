@@ -21,11 +21,17 @@
 class Skybox
 {
 public:
-    Skybox(std::string const folder, std::string const front, std::string const back, std::string const top, std::string const bottom, std::string const left, std::string const right, const RenderContext &renderContext);
+    Skybox(std::string const folder,
+           std::string const front,
+           std::string const back,
+           std::string const top,
+           std::string const bottom,
+           std::string const left,
+           std::string const right);
     ~Skybox();
     void loadTextures();
     void loadBuffers();
-    void render();
+    void draw(const RenderContext &renderContext);
 private:
     std::string mFolder;
     std::string mFrontPath;
@@ -51,8 +57,6 @@ private:
     GLuint mShaderNormalMatrix;
     GLuint mShaderProjectionMatrix;
     GLuint mShaderMvp;
-
-    const RenderContext &mRenderContext;
 
 
 

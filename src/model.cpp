@@ -33,8 +33,7 @@ enum MaterialBlock {
     MATERIAL_SHININESS
 };
 
-Model::Model(const std::string &filename, const RenderContext &renderContext) :
-    mRenderContext(renderContext)
+Model::Model(const std::string &filename)
 {
     Assimp::Importer importer;
 
@@ -63,8 +62,6 @@ Model::Model(const std::string &filename, const RenderContext &renderContext) :
     mIndexCounts.resize(mVertexPositionBuffers.size());
     mVertexArrays.resize(mVertexPositionBuffers.size());
     mVertexIndexBuffers.resize(mVertexPositionBuffers.size());
-
-
 
     glGenBuffers(mVertexPositionBuffers.size(), &mVertexPositionBuffers[0]);
     glGenBuffers(mVertexNormalBuffers.size(), &mVertexNormalBuffers[0]);
@@ -117,27 +114,25 @@ Model::Model(const std::string &filename, const RenderContext &renderContext) :
     assert(err == GL_NO_ERROR);
 }
 
-void Model::draw()
+void Model::draw(const RenderContext &renderContext)
 {
     mShader->bind();
-    mShader->setUniform(mShaderMvp, mRenderContext.mvp);
-    mShader->setUniform(mShaderModelViewMatrix, mRenderContext.modelView);
-    mShader->setUniform(mShaderProjectionMatrix, mRenderContext.projection);
-    mShader->setUniform(mShaderNormalMatrix, mRenderContext.normal);
+    mShader->setUniform(mShaderMvp, renderContext.mvp);
+    mShader->setUniform(mShaderModelViewMatrix, renderContext.modelView);
+    mShader->setUniform(mShaderProjectionMatrix, renderContext.projection);
+    mShader->setUniform(mShaderNormalMatrix, renderContext.normal);
 
-    mLightBlock->set(LIGHT_LA, mRenderContext.lightIntensityAmbient);
-    mLightBlock->set(LIGHT_LD, mRenderContext.lightIntensityDiffuse);
-    mLightBlock->set(LIGHT_LS, mRenderContext.lightIntensitySpecular);
-    mLightBlock->set(LIGHT_POSITION, mRenderContext.lightPosition);
+    mLightBlock->set(LIGHT_LA, renderContext.lightIntensityAmbient);
+    mLightBlock->set(LIGHT_LD, renderContext.lightIntensityDiffuse);
+    mLightBlock->set(LIGHT_LS, renderContext.lightIntensitySpecular);
+    mLightBlock->set(LIGHT_POSITION, renderContext.lightPosition);
     mLightBlock->update();
 
-    mMaterialBlock->set(MATERIAL_KA, mRenderContext.materialReflectivityAmbient);
-    mMaterialBlock->set(MATERIAL_KD, mRenderContext.materialReflectivityDiffuse);
-    mMaterialBlock->set(MATERIAL_KS, mRenderContext.materialReflectivitySpecular);
-    mMaterialBlock->set(MATERIAL_SHININESS, mRenderContext.materialSpecularShininess);
+    mMaterialBlock->set(MATERIAL_KA, renderContext.materialReflectivityAmbient);
+    mMaterialBlock->set(MATERIAL_KD, renderContext.materialReflectivityDiffuse);
+    mMaterialBlock->set(MATERIAL_KS, renderContext.materialReflectivitySpecular);
+    mMaterialBlock->set(MATERIAL_SHININESS, renderContext.materialSpecularShininess);
     mMaterialBlock->update();
-
-
 
     for (unsigned int i = 0; i < mVertexArrays.size(); i += 1) {
         GLuint vaoHandle = mVertexArrays[i];
