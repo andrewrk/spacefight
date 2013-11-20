@@ -1,5 +1,4 @@
 #include "label.h"
-#include <pango/pangocairo.h>
 #include "shadermanager.h"
 
 #include <iostream>
@@ -24,8 +23,10 @@ void Label::init()
 
 }
 
-Label::Label(const RenderContext &renderContext)
-    : mRenderContext(renderContext)
+Label::Label(const RenderContext &renderContext) :
+    mWidth(0),
+    mHeight(0),
+    mRenderContext(renderContext)
 {
     glActiveTexture(GL_TEXTURE0); // what the fuck does this do?
     glGenTextures(1, &mTextureId);
@@ -76,8 +77,14 @@ Label::Label(const RenderContext &renderContext)
     GLenum err = glGetError();
     assert(err == GL_NO_ERROR);
 
+    int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, mWidth);
+    mSurface = cairo_image_surface_create_for_data(&mImgBuffer[0], CAIRO_FORMAT_ARGB32, mWidth, mHeight, stride);
+    mCairoContext = cairo_create(mSurface);
+    mLayout = pango_cairo_create_layout(mCairoContext);
+    cairo_set_source_rgba(mCairoContext, 1, 1, 1, 1);
+
     mColor = glm::vec4(0, 0, 0, 1);
-    mFontFace = "Sans Bold 18";
+    setFontFace("Sans Bold 18");
 }
 
 Label::~Label()
@@ -86,16 +93,43 @@ Label::~Label()
     glDeleteBuffers(1, &mTexCoordBuffer);
     glDeleteVertexArrays(1, &mVertexArray);
     glDeleteTextures(1, &mTextureId);
+
+    g_object_unref(mLayout);
+    cairo_surface_destroy(mSurface);
+    cairo_destroy(mCairoContext);
 }
 
-void Label::setFontFace(std::string fontFace)
+void Label::resize()
 {
-    mFontFace = fontFace;
+    unsigned int imgBufSize = 4 * mWidth * mHeight;
+
+    if (imgBufSize <= mImgBuffer.size())
+        return;
+
+    mImgBuffer.resize(imgBufSize);
+    int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, mWidth);
+
+    cairo_surface_destroy(mSurface);
+    mSurface = cairo_image_surface_create_for_data(&mImgBuffer[0], CAIRO_FORMAT_ARGB32, mWidth, mHeight, stride);
+
+    cairo_destroy(mCairoContext);
+    mCairoContext = cairo_create(mSurface);
+
+    cairo_set_source_rgba(mCairoContext, 1, 1, 1, 1);
+
+    pango_cairo_update_layout(mCairoContext, mLayout);
 }
 
-void Label::setText(std::string text)
+void Label::setFontFace(const std::string &fontFace)
 {
-    mText = text;
+    PangoFontDescription *desc = pango_font_description_from_string(fontFace.c_str());
+    pango_layout_set_font_description(mLayout, desc);
+    pango_font_description_free(desc);
+}
+
+void Label::setText(const std::string &text)
+{
+    pango_layout_set_text(mLayout, text.data(), text.size());
 }
 
 void Label::setColor(glm::vec4 color)
@@ -105,35 +139,18 @@ void Label::setColor(glm::vec4 color)
 
 void Label::update()
 {
-    cairo_surface_t *temp_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 0, 0);
-    cairo_t *context = cairo_create (temp_surface);
-    cairo_surface_destroy (temp_surface);
-
-    /* Create a PangoLayout, set the font and text */
-    PangoLayout *layout = pango_cairo_create_layout (context);
-    pango_layout_set_text (layout, mText.c_str(), -1);
-
-    /* Load the font */
-    PangoFontDescription *desc = pango_font_description_from_string (mFontFace.c_str());
-    pango_layout_set_font_description (layout, desc);
-    pango_font_description_free (desc);
-
-    /* Get text dimensions and create a context to render to */
-    pango_layout_get_size(layout, &mWidth, &mHeight);
+    pango_layout_get_size(mLayout, &mWidth, &mHeight);
     mWidth /= PANGO_SCALE;
     mHeight /= PANGO_SCALE;
-    unsigned char *buffer = (unsigned char*) calloc(4 * mWidth * mHeight, 1);
-    cairo_surface_t *surface = cairo_image_surface_create_for_data(buffer, CAIRO_FORMAT_ARGB32, mWidth, mHeight, 4 * mWidth);
-    cairo_t *render_context = cairo_create(surface);
 
+    resize();
 
-    /* Render */
-    cairo_set_source_rgba (render_context, 1, 1, 1, 1);
-    pango_cairo_show_layout (render_context, layout);
+    std::fill(mImgBuffer.begin(), mImgBuffer.end(), 0);
+    pango_cairo_show_layout(mCairoContext, mLayout);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, mTextureId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, &mImgBuffer[0]);
     glBindVertexArray(mVertexArray);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     GLfloat vertexes[4][3] = {
@@ -143,13 +160,6 @@ void Label::update()
         {(float)mWidth, (float)mHeight, 0},
     };
     glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * 4 * sizeof(GLfloat), vertexes);
-
-    /* Clean up */
-    free (buffer);
-    g_object_unref (layout);
-    cairo_destroy (context);
-    cairo_destroy (render_context);
-    cairo_surface_destroy (surface);
 
     GLenum err = glGetError();
     assert(err == GL_NO_ERROR);
