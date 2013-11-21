@@ -23,25 +23,25 @@ Skybox::Skybox(const std::string folder,
     loadTextures();
     mShader = ShaderManager::getShader("texture");
 
-    float size = 50.0f; //Doesn't matter how big it is as long as it's bigger than the immediate area
+    float size = 70.0f;
 
-    float vertices[] = {-size, -size, -size,   size, -size, -size,   size, size, -size,     // Face 1
-                        -size, -size, -size,   -size, size, -size,   size, size, -size,     // Face 1
+    float vertices[] = {-size, -size, -size,   size, -size, -size,   size, size, -size,     // Front
+                        -size, -size, -size,   -size, size, -size,   size, size, -size,     // Front
 
-                        size, -size, size,   size, -size, -size,   size, size, -size,       // Face 2
-                        size, -size, size,   size, size, size,   size, size, -size,         // Face 2
+                        size, -size, size,   size, -size, -size,   size, size, -size,       // Right
+                        size, -size, size,   size, size, size,   size, size, -size,         // Right
 
-                        -size, -size, size,   size, -size, size,   size, -size, -size,      // Face 3
-                        -size, -size, size,   -size, -size, -size,   size, -size, -size,    // Face 3
+                        -size, -size, size,   size, -size, size,   size, -size, -size,      // Bottom
+                        -size, -size, size,   -size, -size, -size,   size, -size, -size,    // Bottom
 
-                        -size, -size, size,   size, -size, size,   size, size, size,        // Face 4
-                        -size, -size, size,   -size, size, size,   size, size, size,        // Face 4
+                        -size, -size, size,   size, -size, size,   size, size, size,        // Back
+                        -size, -size, size,   -size, size, size,   size, size, size,        // Back
 
-                        -size, -size, -size,   -size, -size, size,   -size, size, size,     // Face 5
-                        -size, -size, -size,   -size, size, -size,   -size, size, size,     // Face 5
+                        -size, -size, -size,   -size, -size, size,   -size, size, size,     // Left
+                        -size, -size, -size,   -size, size, -size,   -size, size, size,     // Left
 
-                        -size, size, size,   size, size, size,   size, size, -size,         // Face 6
-                        -size, size, size,   -size, size, -size,   size, size, -size};      // Face 6
+                        -size, size, size,   size, size, size,   size, size, -size,         // Top
+                        -size, size, size,   -size, size, -size,   size, size, -size};      // Top
 
 
 
@@ -68,6 +68,7 @@ Skybox::Skybox(const std::string folder,
                               0,0,  1,0,   1,1,
                               0,0,  0,1,   1,1 };
 
+
         for(int i(0); i < 72; i++)
         {
             mTexCoords[i] = textureCoords[i];
@@ -86,23 +87,25 @@ Skybox::~Skybox()
 
 void Skybox::loadTextures()
 {
-    mTextures.push_back(new Texture(mFolder + "/" + mTopPath));
-   mTextures.push_back(new Texture(mFolder + "/" + mBackPath));
-    mTextures.push_back(new Texture(mFolder + "/" + mRightPath));
     mTextures.push_back(new Texture(mFolder + "/" + mFrontPath));
-    mTextures.push_back(new Texture(mFolder + "/" + mLeftPath));
+    mTextures.push_back(new Texture(mFolder + "/" + mRightPath));
     mTextures.push_back(new Texture(mFolder + "/" + mBottomPath));
+    mTextures.push_back(new Texture(mFolder + "/" + mBackPath));
+    mTextures.push_back(new Texture(mFolder + "/" + mLeftPath));
+    mTextures.push_back(new Texture(mFolder + "/" + mTopPath));
+
 
 }
 
 
 void Skybox::draw(const RenderContext &renderContext)
 {
-
+//glCullFace(GL_CW);
     mShader->bind();
 
+    glDisable(GL_CULL_FACE);
     glUniformMatrix4fv(mShaderMvp, 1, GL_FALSE, &renderContext.mvp[0][0]);
-
+    glDisable(GL_DEPTH_TEST);
     glDepthMask(0);
 
        glBindVertexArray(mVAOid);
@@ -113,8 +116,10 @@ void Skybox::draw(const RenderContext &renderContext)
            glBindTexture(GL_TEXTURE_2D, 0);
        }
        glBindVertexArray(0);
-
+    //glCullFace(GL_CCW);
+       glEnable(GL_CULL_FACE);
     glDepthMask(1);
+    glEnable(GL_DEPTH_TEST);
 
     mShader->unbind();
 
