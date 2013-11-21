@@ -15,6 +15,7 @@
 #include "skybox.h"
 
 #include "label.h"
+#include "spacebox.h"
 
 class Scene
 {
@@ -37,6 +38,7 @@ private:
     Model *mMonkeyModel;
 
     Skybox *mSkybox = NULL;
+    Spacebox *mSpacebox = NULL;
 
 
     float mMaxSpf;

@@ -23,7 +23,7 @@ Skybox::Skybox(const std::string folder,
     loadTextures();
     mShader = ShaderManager::getShader("texture");
 
-    float size = 40.0f; //Doesn't matter how big it is as long as it's bigger than the immediate area
+    float size = 50.0f; //Doesn't matter how big it is as long as it's bigger than the immediate area
 
     float vertices[] = {-size, -size, -size,   size, -size, -size,   size, size, -size,     // Face 1
                         -size, -size, -size,   -size, size, -size,   size, size, -size,     // Face 1
@@ -42,7 +42,6 @@ Skybox::Skybox(const std::string folder,
 
                         -size, size, size,   size, size, size,   size, size, -size,         // Face 6
                         -size, size, size,   -size, size, -size,   size, size, -size};      // Face 6
-
 
 
 
@@ -76,8 +75,6 @@ Skybox::Skybox(const std::string folder,
 
     loadBuffers();
 
-    mShaderModelViewMatrix = mShader->uniformId("ModelViewMatrix");
-    mShaderProjectionMatrix = mShader->uniformId("ProjectionMatrix");
     mShaderMvp = mShader->uniformId("MVP");
 
 }
@@ -89,45 +86,29 @@ Skybox::~Skybox()
 
 void Skybox::loadTextures()
 {
+    mTextures.push_back(new Texture(mFolder + "/" + mTopPath));
+   mTextures.push_back(new Texture(mFolder + "/" + mBackPath));
     mTextures.push_back(new Texture(mFolder + "/" + mRightPath));
     mTextures.push_back(new Texture(mFolder + "/" + mFrontPath));
-    mTextures.push_back(new Texture(mFolder + "/" + mTopPath));
     mTextures.push_back(new Texture(mFolder + "/" + mLeftPath));
-
-
     mTextures.push_back(new Texture(mFolder + "/" + mBottomPath));
-    mTextures.push_back(new Texture(mFolder + "/" + mBackPath));
-
-
-    for(unsigned int i(0); i < mTextures.size(); i++)
-    {
-        mTextures[i]->load();
-    }
 
 }
 
 
 void Skybox::draw(const RenderContext &renderContext)
 {
-    //Skybox will be rendered before everything else, but with depth buffer writing disabled
-    //(glDepthMask(0) does just that). What shall we achieve with this? With the first thing rendered,
-    //we can be sure, that the box will pass depth tests, because it's the first thing rendered and
-    //it's size isn't too big (it's 50.0 in our case). With depth buffer writing disabled, the cube
-    //will get rendered, but the depth values will remain in depth buffer, as if nothing was rendered,
-    //so practically we just change colors in framebuffer before whole scene,
 
     mShader->bind();
 
     glUniformMatrix4fv(mShaderMvp, 1, GL_FALSE, &renderContext.mvp[0][0]);
-    glUniformMatrix4fv(mShaderModelViewMatrix, 1, GL_FALSE, &renderContext.modelView[0][0]);
-    glUniformMatrix4fv(mShaderProjectionMatrix, 1, GL_FALSE, &renderContext.projection[0][0]);
 
     glDepthMask(0);
 
        glBindVertexArray(mVAOid);
        for(unsigned int i(0); i < mTextures.size(); i++)
        {
-           glBindTexture(GL_TEXTURE_2D, mTextures[i]->getID());
+           mTextures[i]->bind();
            glDrawArrays(GL_TRIANGLES, i*6, 6);
            glBindTexture(GL_TEXTURE_2D, 0);
        }

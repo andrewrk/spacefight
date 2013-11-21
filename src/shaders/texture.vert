@@ -6,8 +6,6 @@ in vec2 TextureCoords;
 
 out vec2 texCoord;
 
-uniform mat4 ModelViewMatrix;
-uniform mat4 ProjectionMatrix;
 uniform mat4 MVP; // projection * ModelViewMatrix
 
 void main()
@@ -16,3 +14,5 @@ void main()
     texCoord = TextureCoords;
 
 }
+
+

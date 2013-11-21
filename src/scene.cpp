@@ -13,7 +13,6 @@
 #include <SDL2/SDL_joystick.h>
 
 
-
 const float CAMERA_SPEED = 0.08;
 const float CAMERA_ROTATION_SPEED = 1.5;
 
@@ -110,7 +109,7 @@ Scene::Scene()
     m2DRenderContext.calcMvp();
 
 
-    mSkybox = new Skybox("assets", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png");
+    mSkybox = new Skybox("assets/superbox", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png");
 
     initJoystick();
 
@@ -236,6 +235,7 @@ void Scene::draw()
 
     mMonkeyModel->draw(m3DRenderContext);
     mSkybox->draw(m3DRenderContext);
+    //mSpacebox->draw(m3DRenderContext);
 
     glDisable(GL_DEPTH_TEST);
     m2DRenderContext.model = glm::mat4(1.0);

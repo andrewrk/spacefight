@@ -5,6 +5,7 @@
 Texture::Texture(std::string file)
     :mID(0), mPath(file)
 {
+    load();
 }
 
 Texture::~Texture()
@@ -29,6 +30,7 @@ void Texture::unbind()
 
 bool Texture::load()
 {
+   // std::cout << "Beginning of load in Texture()" << std::endl;
     SDL_Surface *image = IMG_Load(mPath.c_str());
 
     if(image == 0)
@@ -89,6 +91,8 @@ bool Texture::load()
 
     GLenum err = glGetError();
     assert(err == GL_NO_ERROR);
+
+    //std::cout << "Sucessfully loaded texture." << std::endl;
 
     return true;
 }
