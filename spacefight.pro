@@ -11,7 +11,6 @@ SOURCES += \
     src/main.cpp \
     src/shader.cpp \
     src/model.cpp \
-    src/spacebox.cpp
     src/label.cpp \
     src/resourcebundle.cpp \
     src/labelfactory.cpp
@@ -22,7 +21,6 @@ HEADERS += \
     src/shader.h \
     src/model.h \
     src/rendercontext.h \
-    src/spacebox.h
     src/label.h \
     src/resourcebundle.h \
     src/labelfactory.h
