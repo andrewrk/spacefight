@@ -8,14 +8,13 @@
 #include "model.h"
 #include "rendercontext.h"
 
+#include "resourcebundle.h"
+
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 
-#include "texture.h"
-#include "skybox.h"
-
 #include "label.h"
-#include "spacebox.h"
+#include "labelfactory.h"
 
 class Scene
 {
@@ -37,9 +36,7 @@ private:
 
     Model *mMonkeyModel;
 
-    Skybox *mSkybox = NULL;
-    Spacebox *mSpacebox = NULL;
-
+    LabelFactory *mLabelFactory;
 
     float mMaxSpf;
     float mFps;
@@ -52,6 +49,8 @@ private:
     glm::vec3 mCameraUp; // direction vector
     glm::vec3 mCameraForward; // direction vector
     glm::vec3 mCameraVelocity;
+
+    ResourceBundle mBundle;
 
     void flushEvents();
     void update(float dt, float dx);

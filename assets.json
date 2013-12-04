@@ -1,0 +1,27 @@
+{
+  globFiles: [
+    {
+      path: "src/shaders",
+      glob: "*",
+      prefix: "shader/",
+    },
+    {
+      path: "assets",
+      glob: "models/*.obj",
+    },
+  ],
+  textures: {
+    cockpit: {
+      images: {
+        arrow: {
+          path: "assets/img/arrow.png",
+          anchor: "left",
+        },
+        radarCircle: {
+          path: "assets/img/radar-circle.png",
+          anchor: "center",
+        }
+      }
+    }
+  }
+}

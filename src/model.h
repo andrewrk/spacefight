@@ -5,6 +5,7 @@
 #include "rendercontext.h"
 
 #include <memory>
+#include <vector>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -16,10 +17,12 @@
 
 #include "texture.h"
 
+class ResourceBundle;
+
 class Model
 {
 public:
-    Model(const std::string &filename);
+    Model(ResourceBundle *bundle, const std::string &filename);
 
     void draw(const RenderContext &renderContext);
 

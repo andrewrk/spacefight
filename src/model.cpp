@@ -1,5 +1,5 @@
 #include "model.h"
-#include "shadermanager.h"
+#include "resourcebundle.h"
 #include <cassert>
 #include <iostream>
 
@@ -33,20 +33,27 @@ enum MaterialBlock {
     MATERIAL_SHININESS
 };
 
-Model::Model(const std::string &filename)
+Model::Model(ResourceBundle *bundle, const std::string &filename)
 {
     Assimp::Importer importer;
 
-    const aiScene *scene = importer.ReadFile(filename,
+    std::vector<unsigned char> modelBuffer;
+    bundle->getFileBuffer(filename, modelBuffer);
+
+    const aiScene *scene = importer.ReadFileFromMemory(&modelBuffer[0], modelBuffer.size(),
         aiProcess_Triangulate|
         aiProcess_CalcTangentSpace|
         aiProcess_JoinIdenticalVertices|
         aiProcess_SortByPType|
-        aiProcess_GenSmoothNormals);
+        aiProcess_GenSmoothNormals,
+            filename.c_str());
 
-    assert(scene);
+    if (!scene) {
+        std::cerr << "Error loading model: " << importer.GetErrorString() << "\n";
+        exit(1);
+    }
 
-    mShader = ShaderManager::getShader("basic");
+    mShader = bundle->getShader("basic");
 
     mLightBlock = mShader->getUniformBlock("Light", LIGHT_BLOCK_FIELDS, 0);
     mMaterialBlock = mShader->getUniformBlock("Material", MATERIAL_BLOCK_FIELDS, 1);

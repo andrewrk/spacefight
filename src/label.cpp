@@ -1,33 +1,15 @@
 #include "label.h"
-#include "shadermanager.h"
+#include "labelfactory.h"
 
 #include <iostream>
 
-static Shader *textShader = NULL;
-static GLint attribTexCoord;
-static GLint attribPosition;
 
-static GLint colorUniformId;
-static GLint texUniformId;
-static GLint mvpUniformId;
-
-void Label::init()
-{
-    textShader = ShaderManager::getShader("text");
-    attribTexCoord = textShader->attribLocation("TexCoord");
-    attribPosition = textShader->attribLocation("VertexPosition");
-
-    colorUniformId = textShader->uniformId("Color");
-    texUniformId = textShader->uniformId("Tex");
-    mvpUniformId = textShader->uniformId("MVP");
-
-}
-
-Label::Label() :
+Label::Label(LabelFactory *factory) :
     mWidth(0),
     mHeight(0),
     mSurfaceWidth(0),
-    mSurfaceHeight(0)
+    mSurfaceHeight(0),
+    mFactory(factory)
 {
     glActiveTexture(GL_TEXTURE0); // what the fuck does this do?
     glGenTextures(1, &mTextureId);
@@ -44,7 +26,7 @@ Label::Label() :
     glGenBuffers(1, &mVertexBuffer);
     glGenBuffers(1, &mTexCoordBuffer);
 
-    if (attribPosition == -1) {
+    if (mFactory->attribPosition == -1) {
         std::cerr << "warning: text shader discarding vertex buffer data\n";
     } else {
         // send dummy data - real deal happens at update()
@@ -56,11 +38,11 @@ Label::Label() :
         };
         glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
         glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), vertexes, GL_DYNAMIC_DRAW);
-        glEnableVertexAttribArray(attribPosition);
-        glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+        glEnableVertexAttribArray(mFactory->attribPosition);
+        glVertexAttribPointer(mFactory->attribPosition, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     }
 
-    if (attribTexCoord == -1) {
+    if (mFactory->attribTexCoord == -1) {
         std::cerr << "warning: text shader discarding tex coord data\n";
     } else {
         GLfloat coords[4][2] = {
@@ -71,8 +53,8 @@ Label::Label() :
         };
         glBindBuffer(GL_ARRAY_BUFFER, mTexCoordBuffer);
         glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), coords, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(attribTexCoord);
-        glVertexAttribPointer(attribTexCoord, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+        glEnableVertexAttribArray(mFactory->attribTexCoord);
+        glVertexAttribPointer(mFactory->attribTexCoord, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     }
 
     GLenum err = glGetError();
@@ -174,11 +156,11 @@ void Label::update()
 
 void Label::draw(const RenderContext &renderContext)
 {
-    textShader->bind();
+    mFactory->textShader->bind();
 
-    textShader->setUniform(colorUniformId, mColor);
-    textShader->setUniform(texUniformId, 0);
-    textShader->setUniform(mvpUniformId, renderContext.mvp);
+    mFactory->textShader->setUniform(mFactory->colorUniformId, mColor);
+    mFactory->textShader->setUniform(mFactory->texUniformId, 0);
+    mFactory->textShader->setUniform(mFactory->mvpUniformId, renderContext.mvp);
 
     glBindVertexArray(mVertexArray);
     glActiveTexture(GL_TEXTURE0);
@@ -186,5 +168,5 @@ void Label::draw(const RenderContext &renderContext)
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    textShader->unbind();
+    mFactory->textShader->unbind();
 }

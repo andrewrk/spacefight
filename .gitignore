@@ -1,5 +1,4 @@
 *.o
 /spacefight
 *.pro.user
-Makefile
-bin
+/Makefile

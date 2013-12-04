@@ -8,10 +8,12 @@
 
 #include <glm/glm.hpp>
 
+class ResourceBundle;
+
 class Shader
 {
 public:
-    Shader(const std::string &vsFilename, const std::string &fsFilename);
+    Shader(const std::string &vsFilename, const std::string &fsFilename, const ResourceBundle *bundle);
     ~Shader();
 
     void bind();

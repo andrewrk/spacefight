@@ -12,11 +12,12 @@
 
 #include <pango/pangocairo.h>
 
+class LabelFactory;
 
 class Label
 {
 public:
-    Label();
+    Label(LabelFactory *factory);
     ~Label();
 
     static void init();
@@ -50,6 +51,8 @@ private:
 
     int mSurfaceWidth;
     int mSurfaceHeight;
+
+    LabelFactory *mFactory;
 
     void maybeResize();
 };

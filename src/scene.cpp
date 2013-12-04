@@ -25,7 +25,8 @@ const float FPS_ONE_FRAME_WEIGHT = 1.0 - FPS_SMOOTHNESS;
 
 const float ENGINE_THRUST = 0.001;
 
-Scene::Scene()
+Scene::Scene() :
+    mBundle("assets.bundle")
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
         std::cerr << "Unable to initialize SDL\n";
@@ -63,8 +64,6 @@ Scene::Scene()
     // we expect to maybe get invalid enum due to glewExperimental
     assert(err == GL_INVALID_ENUM || err == GL_NO_ERROR);
 
-    Label::init();
-
     // set buffer swap with monitor's vertical refresh rate
     SDL_GL_SetSwapInterval(1);
 
@@ -73,6 +72,7 @@ Scene::Scene()
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
 
     mCameraForward = glm::vec3(0, -1.0, 0);
@@ -93,13 +93,15 @@ Scene::Scene()
     m3DRenderContext.materialSpecularShininess = 100.0f;
 
 
-    mMonkeyModel = new Model("models/monkey.obj");
+    mMonkeyModel = new Model(&mBundle, "models/monkey.obj");
 
-    mFpsLabel = new Label();
+    mLabelFactory = new LabelFactory(&mBundle);
+
+    mFpsLabel = mLabelFactory->newLabel();
     mFpsLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     mFpsLabel->setFontFace("Sans 12");
 
-    mEngineLabel = new Label();
+    mEngineLabel = mLabelFactory->newLabel();
     mEngineLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     mEngineLabel->setFontFace("Sans 12");
 
@@ -107,9 +109,6 @@ Scene::Scene()
         (float)mScreenHeight, 0.0f);
     m2DRenderContext.view = glm::mat4(1.0);
     m2DRenderContext.calcMvp();
-
-
-    mSkybox = new Skybox("assets/superbox", "front.png", "back.png", "top.png", "bottom.png", "left.png", "right.png");
 
     initJoystick();
 
@@ -121,9 +120,9 @@ Scene::Scene()
 
 Scene::~Scene()
 {
-
     delete mMonkeyModel;
 
+    delete mLabelFactory;
 
     SDL_GL_DeleteContext(mContext);
     SDL_DestroyWindow(mWindow);
@@ -233,11 +232,12 @@ void Scene::draw()
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
+    glEnable(GL_CULL_FACE);
+
     mMonkeyModel->draw(m3DRenderContext);
-    mSkybox->draw(m3DRenderContext);
-    //mSpacebox->draw(m3DRenderContext);
 
     glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
     m2DRenderContext.model = glm::mat4(1.0);
     m2DRenderContext.model = glm::translate(m2DRenderContext.model, glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
     m2DRenderContext.calcMvp();

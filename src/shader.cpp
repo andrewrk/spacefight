@@ -1,5 +1,7 @@
 #include "shader.h"
 
+#include "resourcebundle.h"
+
 #include <sstream>
 #include <cstdlib>
 #include <iostream>
@@ -7,17 +9,9 @@
 #include <cassert>
 #include <cstring>
 
-static std::string textFileRead(std::string filename) {
-    std::ifstream t(filename);
-    std::stringstream buffer;
-    buffer << t.rdbuf();
-    return buffer.str();
-}
-
-
-static void initShader(const std::string &sourcePath, GLuint &shaderId, GLenum type) {
+static void initShader(const ResourceBundle *bundle, const std::string &sourcePath, GLuint &shaderId, GLenum type) {
     shaderId = glCreateShader(type);
-    std::string sourceText = textFileRead(sourcePath);
+    std::string sourceText = bundle->getString(sourcePath);
     assert(sourceText.length() > 0);
     const char * sourceTextCStr = sourceText.c_str();
     glShaderSource(shaderId, 1, &sourceTextCStr, NULL);
@@ -41,10 +35,10 @@ static void initShader(const std::string &sourcePath, GLuint &shaderId, GLenum t
 }
 
 
-Shader::Shader(const std::string &vsFilename, const std::string &fsFilename)
+Shader::Shader(const std::string &vsFilename, const std::string &fsFilename, const ResourceBundle *bundle)
 {
-    initShader(vsFilename, mVertexId, GL_VERTEX_SHADER);
-    initShader(fsFilename, mFragmentId, GL_FRAGMENT_SHADER);
+    initShader(bundle, vsFilename, mVertexId, GL_VERTEX_SHADER);
+    initShader(bundle, fsFilename, mFragmentId, GL_FRAGMENT_SHADER);
 
     mProgramId = glCreateProgram();
     glAttachShader(mProgramId, mFragmentId);
