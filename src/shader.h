@@ -17,7 +17,6 @@ public:
     ~Shader();
 
     void bind();
-    void unbind();
 
     GLuint uniformId(const std::string &name);
     void setUniform(GLuint uniformId, int value);

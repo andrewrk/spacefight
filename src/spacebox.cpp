@@ -72,8 +72,6 @@ void SpaceBox::draw(const RenderContext &renderContext)
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, mTexture);
     glDrawArrays(GL_TRIANGLES, 0, 36);
-
-    mCubeMapShader->unbind();
 }
 
 void SpaceBox::cleanup()

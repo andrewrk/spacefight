@@ -167,6 +167,4 @@ void Label::draw(const RenderContext &renderContext)
     glBindTexture(GL_TEXTURE_2D, mTextureId);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    mFactory->textShader->unbind();
 }

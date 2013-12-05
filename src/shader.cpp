@@ -78,11 +78,6 @@ void Shader::bind()
     glUseProgram(mProgramId);
 }
 
-void Shader::unbind()
-{
-    glUseProgram(0);
-}
-
 GLuint Shader::uniformId(const std::string &name)
 {
     return glGetUniformLocation(mProgramId, name.c_str());

@@ -157,6 +157,4 @@ void Model::draw(const RenderContext &renderContext)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
         glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, NULL);
     }
-
-    mShader->unbind();
 }
