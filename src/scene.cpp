@@ -83,7 +83,7 @@ Scene::Scene() :
     mCameraVelocity = glm::vec3(0, 0, 0);
 
     m3DRenderContext.projection = glm::perspective(60.0f,
-        mScreenWidth / (float)mScreenHeight, 0.1f, 200.0f);
+        mScreenWidth / (float)mScreenHeight, 0.1f, 100.0f);
     m3DRenderContext.model = glm::mat4(1.0);
     m3DRenderContext.lightPosition = glm::vec4(1.0, -3.0, 0.0, 1.0);
     m3DRenderContext.lightIntensityAmbient = glm::vec3(0.2, 0.2, 0.2);
@@ -95,7 +95,7 @@ Scene::Scene() :
     m3DRenderContext.materialSpecularShininess = 100.0f;
 
     mSkyBoxRenderContext = m3DRenderContext;
-    mSkyBoxRenderContext.model = glm::scale(glm::mat4(1.0f), glm::vec3(100.0f, 100.0f, 100.0f));
+    mSkyBoxRenderContext.model = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
 
 
     mMonkeyModel = new Model(&mBundle, "models/monkey.obj");

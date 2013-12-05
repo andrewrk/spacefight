@@ -120,7 +120,7 @@ void SpaceBox::generate()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    int size = 512;
+    int size = 1024;
     std::vector<unsigned char> starPic;
     int oneFaceSize = size * size * 4;
     starPic.resize(oneFaceSize * 6);
