@@ -210,8 +210,20 @@ void Scene::update(float /* dt */, float dx)
         val = SDL_JoystickGetAxis(joystick, 2);
         joyZ += (float) val / (float) INT16_MAX;
 
-        val = SDL_JoystickGetAxis(joystick, 3);
-        joyEngine -= (float) val / (float) INT16_MAX;
+        Uint8 hatVal = SDL_JoystickGetHat(joystick, 0);
+
+        if ((hatVal&SDL_HAT_UP) ||
+            (hatVal&SDL_HAT_LEFTUP) ||
+            (hatVal&SDL_HAT_RIGHTUP))
+        {
+            joyEngine += 1.0f;
+        }
+        if ((hatVal&SDL_HAT_DOWN) ||
+            (hatVal&SDL_HAT_LEFTDOWN) ||
+            (hatVal&SDL_HAT_RIGHTDOWN))
+        {
+            joyEngine -= 1.0f;
+        }
     }
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     if (state[SDL_SCANCODE_LEFT]) joyX -= 1.0;
