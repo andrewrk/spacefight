@@ -67,6 +67,8 @@ Scene::Scene() :
     // set buffer swap with monitor's vertical refresh rate
     SDL_GL_SetSwapInterval(1);
 
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glDepthFunc(GL_LESS);
 
@@ -220,6 +222,8 @@ void Scene::update(float /* dt */, float dx)
     if (state[SDL_SCANCODE_D]) joyZ -= 1.0;
     if (state[SDL_SCANCODE_W]) joyEngine += 1.0;
     if (state[SDL_SCANCODE_S]) joyEngine -= 1.0;
+
+    if (state[SDL_SCANCODE_SPACE]) mSpaceBox->generate();
 
     joyX = clamp(-1.0f, joyX, 1.0f);
     joyY = clamp(-1.0f, joyY, 1.0f);

@@ -24,6 +24,8 @@ private:
     GLuint mVao = 0;
     GLuint mTexture = 0;
 
+    ResourceBundle *mBundle;
+
     void cleanup();
 };
 

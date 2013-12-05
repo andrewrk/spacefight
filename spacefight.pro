@@ -37,7 +37,7 @@ unix: PKGCONFIG += gl
 unix: PKGCONFIG += assimp
 unix: PKGCONFIG += pangocairo
 
-unix: LIBS += -lrucksack
+unix: LIBS += -lrucksack -lfreeimage
 
 
 OTHER_FILES += \

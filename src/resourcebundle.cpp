@@ -3,6 +3,7 @@
 
 #include <sstream>
 
+
 ResourceBundle::ResourceBundle(const std::string &filename)
 {
     int err = rucksack_bundle_open(filename.c_str(), &mBundle);
@@ -71,5 +72,74 @@ void ResourceBundle::getFileBuffer(const std::string &key, std::vector<unsigned 
     if (err) {
         std::cerr << "Error reading '" << key << "' resource: " << rucksack_err_str(err) << "\n";
         exit(1);
+    }
+}
+
+void ResourceBundle::getImage(const std::string &key, Image &image)
+{
+    image.cleanup();
+
+    getFileBuffer(key, image.mCompressedBytes);
+
+    image.mMem = FreeImage_OpenMemory(&image.mCompressedBytes[0], image.mCompressedBytes.size());
+    FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromMemory(image.mMem, 0);
+
+    if (fif == FIF_UNKNOWN || !FreeImage_FIFSupportsReading(fif)) {
+        std::cerr << "Unknown image format for key '" << key << "'\n";
+        exit(1);
+    }
+
+    image.mBmp = FreeImage_LoadFromMemory(fif, image.mMem, 0);
+}
+
+ResourceBundle::Image::~Image()
+{
+    cleanup();
+}
+
+int ResourceBundle::Image::width() const
+{
+    return FreeImage_GetWidth(mBmp);
+}
+
+int ResourceBundle::Image::height() const
+{
+    return FreeImage_GetHeight(mBmp);
+}
+
+void ResourceBundle::Image::doPixelStoreAlignment()
+{
+    glPixelStorei(GL_PACK_ALIGNMENT, 4);
+}
+
+void ResourceBundle::Image::resetPixelStoreAlignment()
+{
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+}
+
+GLenum ResourceBundle::Image::format() const
+{
+    return GL_BGRA;
+}
+
+GLenum ResourceBundle::Image::type() const
+{
+    return GL_UNSIGNED_BYTE;
+}
+
+unsigned char *ResourceBundle::Image::pixels() const
+{
+    return FreeImage_GetBits(mBmp);
+}
+
+void ResourceBundle::Image::cleanup()
+{
+    if (mBmp) {
+        FreeImage_Unload(mBmp);
+        mBmp = NULL;
+    }
+    if (mMem) {
+        FreeImage_CloseMemory(mMem);
+        mMem = NULL;
     }
 }
