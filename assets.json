@@ -9,10 +9,6 @@
       path: "assets",
       glob: "models/*.obj",
     },
-    {
-      path: "assets/img/skyboxtest",
-      prefix: "skybox",
-    },
   ],
   textures: {
     cockpit: {
