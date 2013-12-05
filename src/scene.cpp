@@ -67,7 +67,8 @@ Scene::Scene() :
     // set buffer swap with monitor's vertical refresh rate
     SDL_GL_SetSwapInterval(1);
 
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+    glEnable(GL_CULL_FACE);
 
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glDepthFunc(GL_LESS);
@@ -280,7 +281,6 @@ void Scene::draw()
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
     glDepthMask(GL_FALSE);
     mSpaceBox->draw(mSkyBoxRenderContext);
     glDepthMask(GL_TRUE);
@@ -289,7 +289,6 @@ void Scene::draw()
     mMonkeyModel->draw(m3DRenderContext);
 
     glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
     m2DRenderContext.model = glm::mat4(1.0);
     m2DRenderContext.model = glm::translate(m2DRenderContext.model, glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
     m2DRenderContext.calcMvp();

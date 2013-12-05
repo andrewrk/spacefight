@@ -47,8 +47,8 @@ Label::Label(LabelFactory *factory) :
     } else {
         GLfloat coords[4][2] = {
             {0, 0},
-            {1, 0},
             {0, 1},
+            {1, 0},
             {1, 1},
         };
         glBindBuffer(GL_ARRAY_BUFFER, mTexCoordBuffer);
@@ -112,8 +112,8 @@ void Label::maybeResize()
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     GLfloat vertexes[4][3] = {
         {0, 0, 0},
-        {(float)mSurfaceWidth, 0, 0},
         {0, (float)mSurfaceHeight, 0},
+        {(float)mSurfaceWidth, 0, 0},
         {(float)mSurfaceWidth, (float)mSurfaceHeight, 0},
     };
     glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * 4 * sizeof(GLfloat), vertexes);
