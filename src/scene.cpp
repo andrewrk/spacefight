@@ -267,12 +267,12 @@ void Scene::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glDepthMask(GL_FALSE);
     mSpaceBox->draw(mSkyBoxRenderContext);
     glDepthMask(GL_TRUE);
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
 
     mMonkeyModel->draw(m3DRenderContext);
 
