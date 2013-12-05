@@ -5,47 +5,47 @@
 #include <iostream>
 
 static GLfloat points[] = {
-    -10.0f,  10.0f, -10.0f,
-    -10.0f, -10.0f, -10.0f,
-     10.0f, -10.0f, -10.0f,
-     10.0f, -10.0f, -10.0f,
-     10.0f,  10.0f, -10.0f,
-    -10.0f,  10.0f, -10.0f,
+    -1.0f,  1.0f, -1.0f,
+    -1.0f, -1.0f, -1.0f,
+     1.0f, -1.0f, -1.0f,
+     1.0f, -1.0f, -1.0f,
+     1.0f,  1.0f, -1.0f,
+    -1.0f,  1.0f, -1.0f,
 
-    -10.0f, -10.0f,  10.0f,
-    -10.0f, -10.0f, -10.0f,
-    -10.0f,  10.0f, -10.0f,
-    -10.0f,  10.0f, -10.0f,
-    -10.0f,  10.0f,  10.0f,
-    -10.0f, -10.0f,  10.0f,
+    -1.0f, -1.0f,  1.0f,
+    -1.0f, -1.0f, -1.0f,
+    -1.0f,  1.0f, -1.0f,
+    -1.0f,  1.0f, -1.0f,
+    -1.0f,  1.0f,  1.0f,
+    -1.0f, -1.0f,  1.0f,
 
-     10.0f, -10.0f, -10.0f,
-     10.0f, -10.0f,  10.0f,
-     10.0f,  10.0f,  10.0f,
-     10.0f,  10.0f,  10.0f,
-     10.0f,  10.0f, -10.0f,
-     10.0f, -10.0f, -10.0f,
+     1.0f, -1.0f, -1.0f,
+     1.0f, -1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f, -1.0f,
+     1.0f, -1.0f, -1.0f,
 
-    -10.0f, -10.0f,  10.0f,
-    -10.0f,  10.0f,  10.0f,
-     10.0f,  10.0f,  10.0f,
-     10.0f,  10.0f,  10.0f,
-     10.0f, -10.0f,  10.0f,
-    -10.0f, -10.0f,  10.0f,
+    -1.0f, -1.0f,  1.0f,
+    -1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,
+     1.0f, -1.0f,  1.0f,
+    -1.0f, -1.0f,  1.0f,
 
-    -10.0f,  10.0f, -10.0f,
-     10.0f,  10.0f, -10.0f,
-     10.0f,  10.0f,  10.0f,
-     10.0f,  10.0f,  10.0f,
-    -10.0f,  10.0f,  10.0f,
-    -10.0f,  10.0f, -10.0f,
+    -1.0f,  1.0f, -1.0f,
+     1.0f,  1.0f, -1.0f,
+     1.0f,  1.0f,  1.0f,
+     1.0f,  1.0f,  1.0f,
+    -1.0f,  1.0f,  1.0f,
+    -1.0f,  1.0f, -1.0f,
 
-    -10.0f, -10.0f, -10.0f,
-    -10.0f, -10.0f,  10.0f,
-     10.0f, -10.0f, -10.0f,
-     10.0f, -10.0f, -10.0f,
-    -10.0f, -10.0f,  10.0f,
-     10.0f, -10.0f,  10.0f
+    -1.0f, -1.0f, -1.0f,
+    -1.0f, -1.0f,  1.0f,
+     1.0f, -1.0f, -1.0f,
+     1.0f, -1.0f, -1.0f,
+    -1.0f, -1.0f,  1.0f,
+     1.0f, -1.0f,  1.0f
 };
 
 SpaceBox::SpaceBox(ResourceBundle *bundle)
@@ -125,8 +125,9 @@ void SpaceBox::generate()
     int oneFaceSize = size * size * 4;
     starPic.resize(oneFaceSize * 6);
     for (unsigned int i = 0; i < starPic.size(); i += 4) {
-        unsigned char isStar = (rand() % 100) == 0;
-        unsigned char pixelColor = isStar * 255;
+        unsigned char isStar = (rand() % 200) == 0;
+        unsigned char starIntensity = (rand() % 256);
+        unsigned char pixelColor = isStar * starIntensity;
         starPic[i+0] = pixelColor;
         starPic[i+1] = pixelColor;
         starPic[i+2] = pixelColor;

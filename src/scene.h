@@ -32,6 +32,7 @@ private:
 
     RenderContext m3DRenderContext;
     RenderContext m2DRenderContext;
+    RenderContext mSkyBoxRenderContext;
 
     int mScreenWidth;
     int mScreenHeight;

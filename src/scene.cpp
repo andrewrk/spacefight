@@ -81,7 +81,7 @@ Scene::Scene() :
     mCameraVelocity = glm::vec3(0, 0, 0);
 
     m3DRenderContext.projection = glm::perspective(60.0f,
-        mScreenWidth / (float)mScreenHeight, 0.1f, 100.0f);
+        mScreenWidth / (float)mScreenHeight, 0.1f, 200.0f);
     m3DRenderContext.model = glm::mat4(1.0);
     m3DRenderContext.lightPosition = glm::vec4(1.0, -3.0, 0.0, 1.0);
     m3DRenderContext.lightIntensityAmbient = glm::vec3(0.2, 0.2, 0.2);
@@ -91,6 +91,9 @@ Scene::Scene() :
     m3DRenderContext.materialReflectivityDiffuse = glm::vec3(0.5, 0.5, 0.5);
     m3DRenderContext.materialReflectivitySpecular = glm::vec3(0.5, 0.5, 0.5);
     m3DRenderContext.materialSpecularShininess = 100.0f;
+
+    mSkyBoxRenderContext = m3DRenderContext;
+    mSkyBoxRenderContext.model = glm::scale(glm::mat4(1.0f), glm::vec3(100.0f, 100.0f, 100.0f));
 
 
     mMonkeyModel = new Model(&mBundle, "models/monkey.obj");
@@ -162,6 +165,29 @@ static float clamp(float min, float value, float max)
     return value < min ? min : (value > max ? max : value);
 }
 
+static glm::mat4 lookWithoutPosition(const glm::vec3 &eye, const glm::vec3 &center, const glm::vec3 &up)
+{
+    glm::vec3 f = glm::normalize(center - eye);
+    glm::vec3 u = glm::normalize(up);
+    glm::vec3 s = glm::normalize(glm::cross(f, u));
+    u = glm::cross(s, f);
+
+    glm::mat4 Result(1);
+    Result[0][0] = s.x;
+    Result[1][0] = s.y;
+    Result[2][0] = s.z;
+    Result[0][1] = u.x;
+    Result[1][1] = u.y;
+    Result[2][1] = u.z;
+    Result[0][2] =-f.x;
+    Result[1][2] =-f.y;
+    Result[2][2] =-f.z;
+    Result[3][0] = 1;
+    Result[3][1] = 1;
+    Result[3][2] = 1;
+    return Result;
+}
+
 void Scene::update(float /* dt */, float dx)
 {
     flushEvents();
@@ -219,6 +245,9 @@ void Scene::update(float /* dt */, float dx)
     m3DRenderContext.view = glm::lookAt(mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
     m3DRenderContext.calcMvp();
 
+    mSkyBoxRenderContext.view = lookWithoutPosition(mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
+    mSkyBoxRenderContext.calcMvp();
+
     std::stringstream ss;
     ss << mFps;
     mFpsLabel->setText(ss.str());
@@ -235,7 +264,7 @@ void Scene::draw()
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     glDepthMask(GL_FALSE);
-    mSpaceBox->draw(m3DRenderContext);
+    mSpaceBox->draw(mSkyBoxRenderContext);
     glDepthMask(GL_TRUE);
 
     glEnable(GL_DEPTH_TEST);
