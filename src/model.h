@@ -23,6 +23,7 @@ class Model
 {
 public:
     Model(ResourceBundle *bundle, const std::string &filename);
+    ~Model();
 
     void draw(const RenderContext &renderContext);
 

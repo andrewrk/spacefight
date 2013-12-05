@@ -121,6 +121,14 @@ Model::Model(ResourceBundle *bundle, const std::string &filename)
     assert(err == GL_NO_ERROR);
 }
 
+Model::~Model()
+{
+    glDeleteBuffers(mVertexPositionBuffers.size(), &mVertexPositionBuffers[0]);
+    glDeleteBuffers(mVertexNormalBuffers.size(), &mVertexNormalBuffers[0]);
+    glDeleteBuffers(mVertexIndexBuffers.size(), &mVertexIndexBuffers[0]);
+    glDeleteVertexArrays(mVertexArrays.size(), &mVertexArrays[0]);
+}
+
 void Model::draw(const RenderContext &renderContext)
 {
     mShader->bind();

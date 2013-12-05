@@ -95,6 +95,9 @@ Scene::Scene() :
 
     mMonkeyModel = new Model(&mBundle, "models/monkey.obj");
 
+    mSpaceBox = new SpaceBox(&mBundle);
+    mSpaceBox->generate();
+
     mLabelFactory = new LabelFactory(&mBundle);
 
     mFpsLabel = mLabelFactory->newLabel();
@@ -230,8 +233,12 @@ void Scene::update(float /* dt */, float dx)
 void Scene::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
 
+    glDepthMask(GL_FALSE);
+    mSpaceBox->draw(m3DRenderContext);
+    glDepthMask(GL_TRUE);
+
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
     mMonkeyModel->draw(m3DRenderContext);

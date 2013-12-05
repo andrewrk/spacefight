@@ -16,6 +16,8 @@
 #include "label.h"
 #include "labelfactory.h"
 
+#include "spacebox.h"
+
 class Scene
 {
 public:
@@ -35,6 +37,8 @@ private:
     int mScreenHeight;
 
     Model *mMonkeyModel;
+
+    SpaceBox *mSpaceBox;
 
     LabelFactory *mLabelFactory;
 

@@ -13,7 +13,8 @@ SOURCES += \
     src/model.cpp \
     src/label.cpp \
     src/resourcebundle.cpp \
-    src/labelfactory.cpp
+    src/labelfactory.cpp \
+    src/spacebox.cpp
 
 
 HEADERS += \
@@ -23,7 +24,8 @@ HEADERS += \
     src/rendercontext.h \
     src/label.h \
     src/resourcebundle.h \
-    src/labelfactory.h
+    src/labelfactory.h \
+    src/spacebox.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2
@@ -44,5 +46,7 @@ OTHER_FILES += \
     src/shaders/texture.vert \
     src/shaders/texture.frag \
     src/shaders/text.vert \
-    src/shaders/text.frag
+    src/shaders/text.frag \
+    src/shaders/cubemap.vert \
+    src/shaders/cubemap.frag
 
