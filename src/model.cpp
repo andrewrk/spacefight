@@ -129,7 +129,7 @@ Model::~Model()
     glDeleteVertexArrays(mVertexArrays.size(), &mVertexArrays[0]);
 }
 
-void Model::draw(const RenderContext &renderContext)
+void Model::draw(const RenderContext &renderContext) const
 {
     mShader->bind();
     mShader->setUniform(mShaderMvp, renderContext.mvp);

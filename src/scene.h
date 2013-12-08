@@ -6,6 +6,7 @@
 
 #include "shader.h"
 #include "model.h"
+#include "modelinstance.h"
 #include "rendercontext.h"
 
 #include "resourcebundle.h"
@@ -41,6 +42,7 @@ private:
     int mScreenHeight;
 
     Model *mMonkeyModel;
+    std::vector<ModelInstance> mMonkeys;
 
     SpaceBox *mSpaceBox;
 

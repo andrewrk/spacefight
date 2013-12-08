@@ -26,6 +26,10 @@ const float ENGINE_THRUST = 0.001;
 
 const float FIELD_OF_VIEW = 1.047;
 
+static float randFloat() {
+    return rand() / (float) RAND_MAX;
+}
+
 Scene::Scene() :
     mBundle("assets.bundle")
 {
@@ -85,7 +89,7 @@ Scene::Scene() :
     mCameraVelocity = glm::vec3(0, 0, 0);
 
     m3DRenderContext.projection = glm::perspective(FIELD_OF_VIEW,
-        mScreenWidth / (float)mScreenHeight, 0.1f, 100.0f);
+        mScreenWidth / (float)mScreenHeight, 0.1f, 200.0f);
     m3DRenderContext.model = glm::mat4(1.0);
     m3DRenderContext.lightPosition = glm::vec4(1.0, -3.0, 0.0, 1.0);
     m3DRenderContext.lightIntensityAmbient = glm::vec3(0.2, 0.2, 0.2);
@@ -100,7 +104,6 @@ Scene::Scene() :
     mSkyBoxRenderContext.model = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
 
 
-    mMonkeyModel = new Model(&mBundle, "models/monkey.obj");
 
     mSpaceBox = new SpaceBox(&mBundle);
     mSpaceBox->generate();
@@ -130,6 +133,19 @@ Scene::Scene() :
     mCrossHair->pos.x = mScreenWidth / 2.0f;
     mCrossHair->pos.y = mScreenHeight / 2.0f;
     mCrossHair->update();
+
+
+    mMonkeyModel = new Model(&mBundle, "models/monkey.obj");
+    mMonkeys.resize(50);
+    const float objMaxRadius = 75.0f;
+    for (unsigned int i = 0; i < mMonkeys.size(); i += 1) {
+        ModelInstance *monkey = &mMonkeys[i];
+        monkey->init(mMonkeyModel, &m3DRenderContext);
+        float radius = objMaxRadius * randFloat();
+        glm::vec3 dir = glm::normalize(glm::vec3(randFloat(), randFloat(), randFloat()));
+        monkey->pos = dir * radius;
+        monkey->update();
+    }
 
     initJoystick();
 
@@ -333,7 +349,10 @@ void Scene::draw()
     glDepthMask(GL_TRUE);
 
 
-    mMonkeyModel->draw(m3DRenderContext);
+    for (unsigned int i = 0; i < mMonkeys.size(); i += 1) {
+        ModelInstance *monkey = &mMonkeys[i];
+        monkey->draw();
+    }
 
 
     glDisable(GL_DEPTH_TEST);

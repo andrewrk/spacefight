@@ -25,7 +25,7 @@ public:
     Model(ResourceBundle *bundle, const std::string &filename);
     ~Model();
 
-    void draw(const RenderContext &renderContext);
+    void draw(const RenderContext &renderContext) const;
 
 private:
     Shader *mShader;
