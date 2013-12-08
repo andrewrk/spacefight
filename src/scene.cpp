@@ -101,11 +101,6 @@ Scene::Scene() :
 
     mMonkeyModel = new Model(&mBundle, "models/monkey.obj");
 
-    mBundle.getSpriteSheet("cockpit", mCockpitSpritesheet);
-    mRadarCircle = mCockpitSpritesheet.getImageInfo("radarCircle");
-    mRadarArrow = mCockpitSpritesheet.getImageInfo("arrow");
-    mCrossHair = mCockpitSpritesheet.getImageInfo("crosshair");
-    mCrossHairHit = mCockpitSpritesheet.getImageInfo("crosshairHit");
 
 
 
@@ -118,14 +113,25 @@ Scene::Scene() :
     mFpsLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     mFpsLabel->setFontFace("Sans 12");
 
-    mEngineLabel = mLabelFactory->newLabel();
-    mEngineLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    mEngineLabel->setFontFace("Sans 12");
-
     m2DRenderContext.projection = glm::ortho(0.0f, (float)mScreenWidth,
         (float)mScreenHeight, 0.0f);
     m2DRenderContext.view = glm::mat4(1.0);
-    m2DRenderContext.calcMvp();
+    m2DRenderContext.calcMvpAndNormal();
+
+    mBundle.getSpriteSheet("cockpit", mCockpitSpritesheet);
+    mVelDisplayOutline = new Sprite(mCockpitSpritesheet, "radarCircle", m2DRenderContext);
+    mVelDisplayOutline->pos.x = mScreenWidth - mVelDisplayOutline->scaleWidth() / 2;
+    mVelDisplayOutline->pos.y = mScreenHeight - mVelDisplayOutline->scaleHeight() / 2;
+    mVelDisplayOutline->update();
+
+    mVelDisplayArrow = new Sprite(mCockpitSpritesheet, "arrow", m2DRenderContext);
+    mVelDisplayArrow->pos = mVelDisplayOutline->pos;
+    mVelDisplayArrow->update();
+
+    mCrossHair = new Sprite(mCockpitSpritesheet, "crosshair", m2DRenderContext);
+    mCrossHair->pos.x = mScreenWidth / 2.0f;
+    mCrossHair->pos.y = mScreenHeight / 2.0f;
+    mCrossHair->update();
 
     initJoystick();
 
@@ -268,20 +274,16 @@ void Scene::update(float /* dt */, float dx)
     mCameraVelocity += mCameraForward * (ENGINE_THRUST * joyEngine * dx);
 
     m3DRenderContext.view = glm::lookAt(mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
-    m3DRenderContext.calcMvp();
+    m3DRenderContext.calcMvpAndNormal();
 
     mSkyBoxRenderContext.view = lookWithoutPosition(mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
-    mSkyBoxRenderContext.calcMvp();
+    mSkyBoxRenderContext.calcMvpAndNormal();
 
     std::stringstream ss;
     ss << mFps;
     mFpsLabel->setText(ss.str());
     mFpsLabel->update();
 
-    ss.str("");
-    ss << joyEngine;
-    mEngineLabel->setText(ss.str());
-    mEngineLabel->update();
 }
 
 void Scene::draw()
@@ -299,19 +301,12 @@ void Scene::draw()
 
     glDisable(GL_DEPTH_TEST);
 
-    m2DRenderContext.model = glm::translate(glm::mat4(1.0),
-        glm::vec3(mScreenWidth - mEngineLabel->mWidth, mScreenHeight - mEngineLabel->mHeight, 0));
-    m2DRenderContext.calcMvp();
-    mEngineLabel->draw(m2DRenderContext);
-
-    m2DRenderContext.model = glm::translate(glm::mat4(1.0),
-        glm::vec3(mScreenWidth / 2.0f - mCrossHair->width / 2.0f,
-                  mScreenHeight / 2.0f - mCrossHair->height, 0.0f));
-    m2DRenderContext.calcMvp();
-    mCockpitSpritesheet.draw(mCrossHair, m2DRenderContext);
+    mCrossHair->draw();
+    mVelDisplayOutline->draw();
+    mVelDisplayArrow->draw();
 
     m2DRenderContext.model = glm::translate(glm::mat4(1.0), glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
-    m2DRenderContext.calcMvp();
+    m2DRenderContext.calcMvpAndNormal();
     mFpsLabel->draw(m2DRenderContext);
 }
 

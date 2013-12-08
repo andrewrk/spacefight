@@ -143,6 +143,8 @@ void ResourceBundle::getSpriteSheet(const std::string &key, SpriteSheet &sprites
         info->y = image->y;
         info->width = image->width;
         info->height = image->height;
+        info->anchorX = image->anchor_x;
+        info->anchorY = image->anchor_y;
         info->r90 = image->r90;
 
         glGenVertexArrays(1, &info->vertexArray);

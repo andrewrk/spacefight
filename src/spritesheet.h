@@ -23,15 +23,17 @@ public:
         int y;
         int width;
         int height;
+        int anchorX;
+        int anchorY;
         bool r90;
         GLuint vertexArray;
         GLuint vertexBuffer;
         GLuint texCoordBuffer;
     };
 
-    ImageInfo *getImageInfo(const std::string &key);
+    const ImageInfo *getImageInfo(const std::string &key) const;
 
-    void draw(ImageInfo *image, const RenderContext &renderContext);
+    void draw(const ImageInfo *image, const RenderContext &renderContext) const;
 
 
 private:

@@ -22,10 +22,14 @@ struct RenderContext {
     glm::vec3 materialReflectivitySpecular;
     float materialSpecularShininess;
 
+    inline void calcMvpAndNormal() {
+        calcMvp();
+        normal = glm::inverseTranspose(glm::mat3(modelView));
+    }
+
     inline void calcMvp() {
         modelView = view * model;
         mvp = projection * modelView;
-        normal = glm::inverseTranspose(glm::mat3(modelView));
     }
 };
 

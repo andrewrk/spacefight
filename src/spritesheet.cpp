@@ -11,12 +11,12 @@ SpriteSheet::~SpriteSheet()
     cleanup();
 }
 
-SpriteSheet::ImageInfo *SpriteSheet::getImageInfo(const std::string &key)
+const SpriteSheet::ImageInfo *SpriteSheet::getImageInfo(const std::string &key) const
 {
     return &mInfoDict.at(key);
 }
 
-void SpriteSheet::draw(ImageInfo *image, const RenderContext &renderContext)
+void SpriteSheet::draw(const ImageInfo *image, const RenderContext &renderContext) const
 {
     mShader->bind();
 
