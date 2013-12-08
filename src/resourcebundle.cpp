@@ -124,8 +124,8 @@ void ResourceBundle::getSpriteSheet(const std::string &key, SpriteSheet &sprites
     glGenTextures(1, &spritesheet.mGlTex);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, spritesheet.mGlTex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     texImage.doPixelStoreAlignment();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texImage.width(), texImage.height(), 0, texImage.format(), texImage.type(), texImage.pixels());
     texImage.resetPixelStoreAlignment();
