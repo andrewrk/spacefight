@@ -191,15 +191,39 @@ static glm::mat4 lookWithoutPosition(const glm::vec3 &eye, const glm::vec3 &cent
     Result[0][0] = s.x;
     Result[1][0] = s.y;
     Result[2][0] = s.z;
+
     Result[0][1] = u.x;
     Result[1][1] = u.y;
     Result[2][1] = u.z;
+
     Result[0][2] =-f.x;
     Result[1][2] =-f.y;
     Result[2][2] =-f.z;
+
     Result[3][0] = 1;
     Result[3][1] = 1;
     Result[3][2] = 1;
+    return Result;
+}
+
+static glm::mat3 changeBasisMatrix(const glm::vec3 &forward, const glm::vec3 &up)
+{
+    glm::vec3 f = glm::normalize(forward);
+    glm::vec3 u = glm::normalize(up);
+    glm::vec3 s = glm::normalize(glm::cross(f, u));
+
+    glm::mat3 Result(1);
+    Result[0][0] = s.x;
+    Result[1][0] = s.y;
+    Result[2][0] = s.z;
+
+    Result[0][1] = u.x;
+    Result[1][1] = u.y;
+    Result[2][1] = u.z;
+
+    Result[0][2] = f.x;
+    Result[1][2] = f.y;
+    Result[2][2] = f.z;
     return Result;
 }
 
@@ -279,14 +303,16 @@ void Scene::update(float /* dt */, float dx)
     // calculate the magnitude and direction of velocity in the direction other than forward or backward
     // convert velocity vector from absolute coordinates into coordinate system relative to ship orientation
     // then we can simply take 2 of the 3 components.
-    glm::vec4 relVel = glm::vec4(mCameraVelocity, 1.0f);
+
+    glm::mat3 theMatrix = changeBasisMatrix(mCameraForward, mCameraUp);
+    glm::vec3 relVel = theMatrix * mCameraVelocity;
     glm::vec2 relVel2D(relVel[0], relVel[1]);
     float relVelMagnitude = glm::length(relVel2D);
     if (relVelMagnitude > 0) {
         mVelDisplayArrow->rotation = atan2(relVel2D[1], relVel2D[0]);
-        mVelDisplayArrow->scale.x = relVelMagnitude / 0.1;
+        mVelDisplayArrow->scale = glm::vec3(relVelMagnitude / 0.1);
     } else {
-        mVelDisplayArrow->scale.x = 0;
+        mVelDisplayArrow->scale = glm::vec3(0);
     }
     mVelDisplayArrow->update();
 
