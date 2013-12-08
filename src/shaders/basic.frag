@@ -19,16 +19,16 @@ layout (shared) uniform Material {
     float Shininess; // specular shininess factor
 };
 
-const int levels = 3;
-const float scaleFactor = 1.0 / levels;
 
 void main()
 {
     vec3 s = normalize(Position.xyz - EyePosition);
-    float cosine = max(0.0, dot(s, EyeNormal));
-    vec3 diffuse = Ld * Kd * ceil(cosine * levels) * scaleFactor;
-    vec3 color3 = La * Ka + diffuse;
-    FragColor = vec4(color3, 1.0);
+    vec3 v = normalize(vec3(-Position));
+    vec3 r = reflect(-s, EyeNormal);
+    vec3 ads = La * Ka +
+            Ld * Kd * max(dot(s, EyeNormal), 0.0) +
+            Ls * Ks * pow(max(dot(r, v), 0.0), Shininess);
+    FragColor = vec4(ads, 1.0);
 }
 
 
