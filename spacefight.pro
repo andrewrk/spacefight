@@ -14,7 +14,8 @@ SOURCES += \
     src/label.cpp \
     src/resourcebundle.cpp \
     src/labelfactory.cpp \
-    src/spacebox.cpp
+    src/spacebox.cpp \
+    src/spritesheet.cpp
 
 
 HEADERS += \
@@ -25,7 +26,8 @@ HEADERS += \
     src/label.h \
     src/resourcebundle.h \
     src/labelfactory.h \
-    src/spacebox.h
+    src/spacebox.h \
+    src/spritesheet.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2

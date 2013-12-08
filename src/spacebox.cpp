@@ -141,4 +141,6 @@ void SpaceBox::generate()
     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA8, size, size, 0, GL_BGRA, GL_UNSIGNED_BYTE, &starPic[oneFaceSize*4]);
     glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA8, size, size, 0, GL_BGRA, GL_UNSIGNED_BYTE, &starPic[oneFaceSize*5]);
 
+    GLenum err = glGetError();
+    assert(err == GL_NO_ERROR);
 }

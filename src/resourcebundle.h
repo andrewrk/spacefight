@@ -2,6 +2,8 @@
 #define RESOURCEBUNDLE_H
 
 #include "shader.h"
+#include "spritesheet.h"
+
 #include <rucksack.h>
 #include <string>
 #include <map>
@@ -40,11 +42,14 @@ public:
         std::vector<unsigned char> mCompressedBytes;
 
         void cleanup();
+        bool buildFromCompressedBytes();
         friend class ResourceBundle;
     };
 
-    // decompress an image before returning it
     void getImage(const std::string &key, Image &image);
+
+    void getSpriteSheet(const std::string &key, SpriteSheet &spritesheet);
+
 
 
 private:

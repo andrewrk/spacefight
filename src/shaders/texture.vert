@@ -1,18 +1,14 @@
 #version 330 core
 
 in vec3 VertexPosition;
-in vec2 TextureCoords;
+in vec2 TexCoord;
 
+out vec2 FragTexCoord;
 
-out vec2 texCoord;
+uniform mat4 MVP;
 
-uniform mat4 MVP; // projection * ModelViewMatrix
-
-void main()
+void main(void)
 {
+    FragTexCoord = TexCoord;
     gl_Position = MVP * vec4(VertexPosition, 1.0);
-    texCoord = TextureCoords;
-
 }
-
-

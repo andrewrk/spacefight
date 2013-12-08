@@ -30,7 +30,7 @@ std::string ResourceBundle::getString(const std::string &key) const
     long size = rucksack_file_size(entry);
     std::string contents;
     contents.resize(size);
-    int err = rucksack_bundle_file_read(mBundle, entry, reinterpret_cast<unsigned char *>(&contents[0]));
+    int err = rucksack_file_read(entry, reinterpret_cast<unsigned char *>(&contents[0]));
 
     if (err) {
         std::cerr << "Error reading '" << key << "' resource: " << rucksack_err_str(err) << "\n";
@@ -67,7 +67,7 @@ void ResourceBundle::getFileBuffer(const std::string &key, std::vector<unsigned 
 
     buffer.resize(size);
 
-    int err = rucksack_bundle_file_read(mBundle, entry, &buffer[0]);
+    int err = rucksack_file_read(entry, &buffer[0]);
 
     if (err) {
         std::cerr << "Error reading '" << key << "' resource: " << rucksack_err_str(err) << "\n";
@@ -81,15 +81,158 @@ void ResourceBundle::getImage(const std::string &key, Image &image)
 
     getFileBuffer(key, image.mCompressedBytes);
 
-    image.mMem = FreeImage_OpenMemory(&image.mCompressedBytes[0], image.mCompressedBytes.size());
-    FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromMemory(image.mMem, 0);
-
-    if (fif == FIF_UNKNOWN || !FreeImage_FIFSupportsReading(fif)) {
-        std::cerr << "Unknown image format for key '" << key << "'\n";
+    if (!image.buildFromCompressedBytes()) {
+        std::cerr << "Error reading image from '" << key << "'\n";
         exit(1);
     }
 
-    image.mBmp = FreeImage_LoadFromMemory(fif, image.mMem, 0);
+}
+
+void ResourceBundle::getSpriteSheet(const std::string &key, SpriteSheet &spritesheet)
+{
+    spritesheet.cleanup();
+    spritesheet.init(this);
+
+    // get the texture entry
+    RuckSackFileEntry *entry = rucksack_bundle_find_file(mBundle, key.c_str());
+    if (!entry) {
+        std::cerr << "Could not find resource '" << key << "' in bundle.\n";
+        exit(1);
+    }
+    RuckSackTexture *rsTexture;
+    int err = rucksack_file_open_texture(entry, &rsTexture);
+    if (err) {
+        std::cerr << "Error reading '" << key << "' as texture: " << rucksack_err_str(err) << "\n";
+        exit(1);
+    }
+
+    // read the texture image
+    Image texImage;
+    long size = rucksack_texture_size(rsTexture);
+    texImage.mCompressedBytes.resize(size);
+    err = rucksack_texture_read(rsTexture, &texImage.mCompressedBytes[0]);
+    if (err) {
+        std::cerr << "Error reading texture '" << key << "' from resources: " << rucksack_err_str(err) << "\n";
+        exit(1);
+    }
+    if (!texImage.buildFromCompressedBytes()) {
+        std::cerr << "Error decoding texture '" << key << "' from resources\n";
+        exit(1);
+    }
+
+    // make the opengl texture for it
+    glGenTextures(1, &spritesheet.mGlTex);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, spritesheet.mGlTex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    texImage.doPixelStoreAlignment();
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texImage.width(), texImage.height(), 0, texImage.format(), texImage.type(), texImage.pixels());
+    texImage.resetPixelStoreAlignment();
+
+    // read the images metadata
+    std::vector<RuckSackImage*> images;
+    images.resize(rucksack_texture_image_count(rsTexture));
+    rucksack_texture_get_images(rsTexture, &images[0]);
+    GLfloat fWidth = texImage.width();
+    GLfloat fHeight = texImage.height();
+    for (unsigned int i = 0; i < images.size(); i += 1) {
+        RuckSackImage *image = images[i];
+        SpriteSheet::ImageInfo *info = &spritesheet.mInfoDict[image->name];
+        info->x = image->x;
+        info->y = image->y;
+        info->width = image->width;
+        info->height = image->height;
+        info->r90 = image->r90;
+
+        glGenVertexArrays(1, &info->vertexArray);
+        glBindVertexArray(info->vertexArray);
+
+        glGenBuffers(1, &info->vertexBuffer);
+        glGenBuffers(1, &info->texCoordBuffer);
+
+        if (spritesheet.attribPosition == -1) {
+            std::cerr << "warning: shader discarding vertex buffer data\n";
+        } else {
+            GLfloat vertexes[4][3];
+            if (info->r90) {
+                vertexes[0][0] = info->width;
+                vertexes[0][1] = 0.0f;
+                vertexes[0][2] = 0.0f;
+
+                vertexes[1][0] = 0.0f;
+                vertexes[1][1] = 0.0f;
+                vertexes[1][2] = 0.0f;
+
+                vertexes[2][0] = info->width;
+                vertexes[2][1] = info->height;
+                vertexes[2][2] = 0.0f;
+
+                vertexes[3][0] = 0.0f;
+                vertexes[3][1] = info->height;
+                vertexes[3][2] = 0.0f;
+
+            } else {
+                vertexes[0][0] = 0.0f;
+                vertexes[0][1] = 0.0f;
+                vertexes[0][2] = 0.0f;
+
+                vertexes[1][0] = 0.0f;
+                vertexes[1][1] = info->height;
+                vertexes[1][2] = 0.0f;
+
+                vertexes[2][0] = info->width;
+                vertexes[2][1] = 0.0f;
+                vertexes[2][2] = 0.0f;
+
+                vertexes[3][0] = info->width;
+                vertexes[3][1] = info->height;
+                vertexes[3][2] = 0.0f;
+            }
+            glBindBuffer(GL_ARRAY_BUFFER, info->vertexBuffer);
+            glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), vertexes, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(spritesheet.attribPosition);
+            glVertexAttribPointer(spritesheet.attribPosition, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+        }
+
+        if (spritesheet.attribTexCoord == -1) {
+            std::cerr << "warning: shader discarding tex coord data\n";
+        } else {
+            GLfloat coords[4][2];
+            if (info->r90) {
+                coords[0][0] = (info->x + info->width) / fWidth;
+                coords[0][1] = info->y / fHeight;
+
+                coords[1][0] = info->x / fWidth;
+                coords[1][1] = info->y / fHeight;
+
+                coords[2][0] = (info->x + info->width) / fWidth;
+                coords[2][1] = (info->y + info->height) / fHeight;
+
+                coords[3][0] = info->x / fWidth;
+                coords[3][1] = (info->y + info->height) / fHeight;
+            } else {
+                coords[0][0] = info->x / fWidth;
+                coords[0][1] = info->y / fHeight;
+
+                coords[1][0] = info->x / fWidth;
+                coords[1][1] = (info->y + info->height) / fHeight;
+
+                coords[2][0] = (info->x + info->width) / fWidth;
+                coords[2][1] = info->y / fHeight;
+
+                coords[3][0] = (info->x + info->width) / fWidth;
+                coords[3][1] = (info->y + info->height) / fHeight;
+
+            }
+            glBindBuffer(GL_ARRAY_BUFFER, info->texCoordBuffer);
+            glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), coords, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(spritesheet.attribTexCoord);
+            glVertexAttribPointer(spritesheet.attribTexCoord, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+        }
+    }
+
+    rucksack_texture_close(rsTexture);
 }
 
 ResourceBundle::Image::~Image()
@@ -142,4 +285,18 @@ void ResourceBundle::Image::cleanup()
         FreeImage_CloseMemory(mMem);
         mMem = NULL;
     }
+}
+
+bool ResourceBundle::Image::buildFromCompressedBytes()
+{
+
+    mMem = FreeImage_OpenMemory(&mCompressedBytes[0], mCompressedBytes.size());
+    FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromMemory(mMem, 0);
+
+    if (fif == FIF_UNKNOWN || !FreeImage_FIFSupportsReading(fif)) {
+        return false;
+    }
+
+    mBmp = FreeImage_LoadFromMemory(fif, mMem, 0);
+    return FreeImage_HasPixels(mBmp);
 }
