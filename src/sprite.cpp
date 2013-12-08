@@ -57,7 +57,7 @@ float Sprite::scaleHeight() const
 
 void Sprite::update()
 {
-    mRenderContext.model = glm::translate(glm::scale(glm::rotate(glm::translate(glm::mat4(1.0f), mAnchorTrans), rotation, glm::vec3(0, 0, 1)), scale), pos);
+    mRenderContext.model = glm::translate(glm::rotate(glm::scale(glm::translate(glm::mat4(1.0f), pos), scale), rotation, glm::vec3(0, 0, 1.0f)), mAnchorTrans);
     mRenderContext.modelView = mProjectionAndView.view * mRenderContext.model;
     mRenderContext.mvp = mProjectionAndView.projection * mRenderContext.modelView;
 }

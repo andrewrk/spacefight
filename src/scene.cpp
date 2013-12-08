@@ -13,8 +13,7 @@
 #include <SDL2/SDL_joystick.h>
 
 
-const float CAMERA_SPEED = 0.08;
-const float CAMERA_ROTATION_SPEED = 1.5;
+const float CAMERA_ROTATION_SPEED = 0.0262f;
 
 const float EPSILON = 0.0000000001;
 const float MAX_DISPLAY_FPS = 90000;
@@ -24,6 +23,8 @@ const float FPS_SMOOTHNESS = 0.9;
 const float FPS_ONE_FRAME_WEIGHT = 1.0 - FPS_SMOOTHNESS;
 
 const float ENGINE_THRUST = 0.001;
+
+const float FIELD_OF_VIEW = 1.047;
 
 Scene::Scene() :
     mBundle("assets.bundle")
@@ -83,7 +84,7 @@ Scene::Scene() :
     mCameraPosition = glm::vec3(0, 10.0, 0);
     mCameraVelocity = glm::vec3(0, 0, 0);
 
-    m3DRenderContext.projection = glm::perspective(60.0f,
+    m3DRenderContext.projection = glm::perspective(FIELD_OF_VIEW,
         mScreenWidth / (float)mScreenHeight, 0.1f, 100.0f);
     m3DRenderContext.model = glm::mat4(1.0);
     m3DRenderContext.lightPosition = glm::vec4(1.0, -3.0, 0.0, 1.0);
@@ -100,9 +101,6 @@ Scene::Scene() :
 
 
     mMonkeyModel = new Model(&mBundle, "models/monkey.obj");
-
-
-
 
     mSpaceBox = new SpaceBox(&mBundle);
     mSpaceBox->generate();
@@ -250,7 +248,6 @@ void Scene::update(float /* dt */, float dx)
     if (state[SDL_SCANCODE_W]) joyEngine += 1.0;
     if (state[SDL_SCANCODE_S]) joyEngine -= 1.0;
 
-    if (state[SDL_SCANCODE_SPACE]) mSpaceBox->generate();
 
     joyX = clamp(-1.0f, joyX, 1.0f);
     joyY = clamp(-1.0f, joyY, 1.0f);
@@ -278,6 +275,20 @@ void Scene::update(float /* dt */, float dx)
 
     mSkyBoxRenderContext.view = lookWithoutPosition(mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
     mSkyBoxRenderContext.calcMvpAndNormal();
+
+    // calculate the magnitude and direction of velocity in the direction other than forward or backward
+    // convert velocity vector from absolute coordinates into coordinate system relative to ship orientation
+    // then we can simply take 2 of the 3 components.
+    glm::vec4 relVel = glm::vec4(mCameraVelocity, 1.0f);
+    glm::vec2 relVel2D(relVel[0], relVel[1]);
+    float relVelMagnitude = glm::length(relVel2D);
+    if (relVelMagnitude > 0) {
+        mVelDisplayArrow->rotation = atan2(relVel2D[1], relVel2D[0]);
+        mVelDisplayArrow->scale.x = relVelMagnitude / 0.1;
+    } else {
+        mVelDisplayArrow->scale.x = 0;
+    }
+    mVelDisplayArrow->update();
 
     std::stringstream ss;
     ss << mFps;

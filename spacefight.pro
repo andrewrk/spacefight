@@ -5,6 +5,7 @@ CONFIG -= qt
 
 QMAKE_CXXFLAGS += -std=c++11
 
+DEFINES += GLM_FORCE_RADIANS
 
 SOURCES += \
     src/scene.cpp \
