@@ -101,6 +101,14 @@ Scene::Scene() :
 
     mMonkeyModel = new Model(&mBundle, "models/monkey.obj");
 
+    mBundle.getSpriteSheet("cockpit", mCockpitSpritesheet);
+    mRadarCircle = mCockpitSpritesheet.getImageInfo("radarCircle");
+    mRadarArrow = mCockpitSpritesheet.getImageInfo("arrow");
+    mCrossHair = mCockpitSpritesheet.getImageInfo("crosshair");
+    mCrossHairHit = mCockpitSpritesheet.getImageInfo("crosshairHit");
+
+
+
     mSpaceBox = new SpaceBox(&mBundle);
     mSpaceBox->generate();
 
@@ -288,17 +296,23 @@ void Scene::draw()
 
     mMonkeyModel->draw(m3DRenderContext);
 
-    glDisable(GL_DEPTH_TEST);
-    m2DRenderContext.model = glm::mat4(1.0);
-    m2DRenderContext.model = glm::translate(m2DRenderContext.model, glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
-    m2DRenderContext.calcMvp();
-    mFpsLabel->draw(m2DRenderContext);
 
-    m2DRenderContext.model = glm::mat4(1.0);
-    m2DRenderContext.model = glm::translate(m2DRenderContext.model,
+    glDisable(GL_DEPTH_TEST);
+
+    m2DRenderContext.model = glm::translate(glm::mat4(1.0),
         glm::vec3(mScreenWidth - mEngineLabel->mWidth, mScreenHeight - mEngineLabel->mHeight, 0));
     m2DRenderContext.calcMvp();
     mEngineLabel->draw(m2DRenderContext);
+
+    m2DRenderContext.model = glm::translate(glm::mat4(1.0),
+        glm::vec3(mScreenWidth / 2.0f - mCrossHair->width / 2.0f,
+                  mScreenHeight / 2.0f - mCrossHair->height, 0.0f));
+    m2DRenderContext.calcMvp();
+    mCockpitSpritesheet.draw(mCrossHair, m2DRenderContext);
+
+    m2DRenderContext.model = glm::translate(glm::mat4(1.0), glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
+    m2DRenderContext.calcMvp();
+    mFpsLabel->draw(m2DRenderContext);
 }
 
 void Scene::flushEvents() {

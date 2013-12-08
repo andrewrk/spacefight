@@ -20,7 +20,15 @@
         radarCircle: {
           path: "assets/img/radar-circle.png",
           anchor: "center",
-        }
+        },
+        crosshair: {
+          path: "assets/img/crosshair.png",
+          anchor: "center",
+        },
+        crosshairHit: {
+          path: "assets/img/crosshair-hit.png",
+          anchor: "center",
+        },
       }
     }
   }

@@ -18,6 +18,8 @@
 
 #include "spacebox.h"
 
+#include "spritesheet.h"
+
 class Scene
 {
 public:
@@ -47,6 +49,13 @@ private:
     float mFps;
     Label *mFpsLabel;
     Label *mEngineLabel;
+
+    SpriteSheet mCockpitSpritesheet;
+    SpriteSheet::ImageInfo *mRadarCircle;
+    SpriteSheet::ImageInfo *mRadarArrow;
+    SpriteSheet::ImageInfo *mCrossHair;
+    SpriteSheet::ImageInfo *mCrossHairHit;
+
 
     std::vector<SDL_Joystick*> mJoysticks;
 

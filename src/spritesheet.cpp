@@ -4,12 +4,16 @@
 
 SpriteSheet::SpriteSheet()
 {
-
 }
 
 SpriteSheet::~SpriteSheet()
 {
     cleanup();
+}
+
+SpriteSheet::ImageInfo *SpriteSheet::getImageInfo(const std::string &key)
+{
+    return &mInfoDict.at(key);
 }
 
 void SpriteSheet::draw(ImageInfo *image, const RenderContext &renderContext)
