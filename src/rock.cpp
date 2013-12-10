@@ -42,7 +42,7 @@ enum MaterialBlock {
 
 Rock::Rock(ResourceBundle *bundle)
 {
-    mShader = bundle->getShader("basic");
+    mShader = bundle->getShader("rock");
 
     mLightBlock = mShader->getUniformBlock("Light", LIGHT_BLOCK_FIELDS, 0);
     mMaterialBlock = mShader->getUniformBlock("Material", MATERIAL_BLOCK_FIELDS, 1);
@@ -52,13 +52,36 @@ Rock::Rock(ResourceBundle *bundle)
     mShaderNormalMatrix = mShader->uniformId("NormalMatrix");
     mShaderProjectionMatrix = mShader->uniformId("ProjectionMatrix");
     mShaderMvp = mShader->uniformId("MVP");
+    texUniformId = mShader->uniformId("Tex");
 
     attribPositionIndex = mShader->attribLocation("VertexPosition");
     attribNormalIndex = mShader->attribLocation("VertexNormal");
+    attribTexCoordIndex = mShader->attribLocation("TexCoord");
+
+    ResourceBundle::Image image;
+    bundle->getImage("rockTexture", image);
+
+    glGenTextures(1, &mTexture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, mTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    image.doPixelStoreAlignment();
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.width(), image.height(), 0, image.format(), image.type(), image.pixels());
+    image.resetPixelStoreAlignment();
+
+
+    GLenum err = glGetError();
+    assert(err == GL_NO_ERROR);
 }
 
 Rock::~Rock()
 {
+
+    if (mTexture) {
+        glDeleteTextures(1, &mTexture);
+        mTexture = 0;
+    }
     cleanup();
 }
 
@@ -103,6 +126,11 @@ static void addOctahedronFace(std::vector<glm::vec3> &points,
 
 static const float PI = 3.1415926535;
 
+static float randFloat() {
+    return rand() / (float) RAND_MAX;
+}
+
+
 void Rock::generate()
 {
     cleanup();
@@ -122,8 +150,14 @@ void Rock::generate()
     addOctahedronFace(points, indexes, glm::mat3(glm::rotate(matrix, 3 * PI / 2, glm::vec3(0, 1, 0))));
 
     std::vector<glm::vec3> normals;
+    std::vector<glm::vec2> texCoords;
     for (unsigned int i = 0; i < points.size(); i += 1) {
-        normals.push_back(glm::normalize(points[i]));
+        glm::vec3 normal = glm::normalize(points[i]);
+        normals.push_back(normal);
+
+        points[i] = (0.75f + randFloat() * 0.50f) * normal;
+
+        texCoords.push_back(glm::vec2(randFloat(), randFloat()));
     }
 
 
@@ -133,12 +167,14 @@ void Rock::generate()
     glGenBuffers(1, &vertexPositionBuffer);
     glGenBuffers(1, &vertexNormalBuffer);
     glGenBuffers(1, &vertexIndexBuffer);
+    glGenBuffers(1, &texCoordBuffer);
 
 
     glBindVertexArray(vertexArrayObject);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.size() * sizeof(GLuint), &indexes[0], GL_STATIC_DRAW);
+
 
     if (attribPositionIndex != -1) {
         glBindBuffer(GL_ARRAY_BUFFER, vertexPositionBuffer);
@@ -159,6 +195,17 @@ void Rock::generate()
     } else {
         std::cerr << "warning: shader ignoring vertex normal data\n";
     }
+
+    if (attribTexCoordIndex != -1) {
+        glBindBuffer(GL_ARRAY_BUFFER, texCoordBuffer);
+        glBufferData(GL_ARRAY_BUFFER, texCoords.size() * 2 * sizeof(GLfloat), &texCoords[0], GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(attribTexCoordIndex);
+        glVertexAttribPointer(attribTexCoordIndex, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    } else {
+        std::cerr << "Warning: shader ignoring tex coord data\n";
+    }
+
     GLenum err = glGetError();
     assert(err == GL_NO_ERROR);
 }
@@ -170,6 +217,7 @@ void Rock::draw(const RenderContext &renderContext)
     mShader->setUniform(mShaderModelViewMatrix, renderContext.modelView);
     mShader->setUniform(mShaderProjectionMatrix, renderContext.projection);
     mShader->setUniform(mShaderNormalMatrix, renderContext.normal);
+    mShader->setUniform(texUniformId, 0);
 
     mLightBlock->set(LIGHT_LA, renderContext.lightIntensityAmbient);
     mLightBlock->set(LIGHT_LD, renderContext.lightIntensityDiffuse);
@@ -185,6 +233,8 @@ void Rock::draw(const RenderContext &renderContext)
 
     glBindVertexArray(vertexArrayObject);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, mTexture);
     glDrawElements(GL_TRIANGLE_STRIP, elementCount, GL_UNSIGNED_INT, NULL);
 }
 
@@ -201,6 +251,10 @@ void Rock::cleanup()
     if (vertexIndexBuffer) {
         glDeleteBuffers(1, &vertexIndexBuffer);
         vertexIndexBuffer = 0;
+    }
+    if (texCoordBuffer) {
+        glDeleteBuffers(1, &texCoordBuffer);
+        texCoordBuffer = 0;
     }
     if (vertexArrayObject) {
         glDeleteVertexArrays(1, &vertexArrayObject);

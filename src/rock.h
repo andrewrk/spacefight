@@ -25,11 +25,15 @@ private:
     GLuint vertexPositionBuffer = 0;
     GLuint vertexNormalBuffer = 0;
     GLuint vertexIndexBuffer = 0;
+    GLuint texCoordBuffer = 0;
+
+    GLuint mTexture = 0;
 
     Shader *mShader;
 
     GLint attribPositionIndex;
     GLint attribNormalIndex;
+    GLint attribTexCoordIndex;
 
     std::unique_ptr<Shader::UniformBlock> mLightBlock;
     std::unique_ptr<Shader::UniformBlock> mMaterialBlock;
@@ -38,6 +42,8 @@ private:
     GLuint mShaderNormalMatrix;
     GLuint mShaderProjectionMatrix;
     GLuint mShaderMvp;
+    GLuint texUniformId;
+
 
     int elementCount;
 

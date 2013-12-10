@@ -57,5 +57,7 @@ OTHER_FILES += \
     src/shaders/text.vert \
     src/shaders/text.frag \
     src/shaders/cubemap.vert \
-    src/shaders/cubemap.frag
+    src/shaders/cubemap.frag \
+    src/shaders/rock.vert \
+    src/shaders/rock.frag
 

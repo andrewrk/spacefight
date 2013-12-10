@@ -43,8 +43,8 @@ private:
     Shader *mShader;
     GLint attribTexCoord;
     GLint attribPosition;
-    GLint texUniformId;
-    GLint mvpUniformId;
+    GLuint texUniformId;
+    GLuint mvpUniformId;
 
 
     std::map<std::string, ImageInfo> mInfoDict;
