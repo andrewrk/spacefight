@@ -290,14 +290,6 @@ void Scene::update(float /* dt */, float dx)
     if (state[SDL_SCANCODE_W]) joyEngine += 1.0;
     if (state[SDL_SCANCODE_S]) joyEngine -= 1.0;
 
-    if (state[SDL_SCANCODE_C]) {
-        cullOn = !cullOn;
-        if (cullOn) {
-            glEnable(GL_CULL_FACE);
-        } else {
-            glDisable(GL_CULL_FACE);
-        }
-    }
 
 
     joyX = clamp(-1.0f, joyX, 1.0f);
@@ -385,8 +377,29 @@ void Scene::flushEvents() {
     while(SDL_PollEvent(&event)) {
         switch (event.type) {
         case SDL_KEYDOWN:
-            if (event.key.keysym.sym == SDLK_ESCAPE)
+            switch (event.key.keysym.scancode) {
+            case SDL_SCANCODE_ESCAPE:
                 mRunning = false;
+                break;
+            case SDL_SCANCODE_C:
+                cullOn = !cullOn;
+                if (cullOn) {
+                    glEnable(GL_CULL_FACE);
+                } else {
+                    glDisable(GL_CULL_FACE);
+                }
+                break;
+            case SDL_SCANCODE_P:
+                solidOn = !solidOn;
+                if (solidOn) {
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                } else {
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                }
+                break;
+            default:
+                break;
+            }
             break;
         case SDL_QUIT:
             mRunning = false;

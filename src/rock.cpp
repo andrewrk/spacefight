@@ -62,47 +62,33 @@ Rock::~Rock()
     cleanup();
 }
 
-static const float sqrt3div2 = 0.8660254037844386; // sqrt(3)/2
+static const float invSqrt2 = 0.7071067811865475; // 1/sqrt(2)
 
 static void addOctahedronFace(std::vector<glm::vec3> &points,
-                              std::vector<glm::vec3> &normals,
                               std::vector<GLuint> &indexes,
-                              const glm::mat4 &matrix)
+                              const glm::mat3 &matrix)
 {
-
-}
-
-void Rock::generate()
-{
-    cleanup();
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     int rowCount = 10;
-    std::vector<glm::vec3> points;
-    points.reserve(rowCount * (rowCount + 1) / 2);
-    float sideLen = 1 / (float)rowCount;
+
+    float sideLen = 2 * invSqrt2 / (float)rowCount;
+
+    int indexOffset = points.size();
 
     glm::vec3 top(0, 1, 0);
-    glm::vec3 bottomLeft(sqrt3div2, 0, -0.5);
+    glm::vec3 bottomLeft(invSqrt2, 0, -invSqrt2);
     glm::vec3 downLeftDir = glm::normalize(bottomLeft - top);
     glm::vec3 rightDir(0, 0, 1);
     for (int row = 0; row <= rowCount; row += 1) {
         glm::vec3 start = top + downLeftDir * (row * sideLen);
         for (int i = 0; i <= row; i += 1) {
-            points.push_back(start + rightDir * (i * sideLen));
+            points.push_back(matrix * (start + rightDir * (i * sideLen)));
         }
     }
 
-    std::vector<glm::vec3> normals;
-    for (unsigned int i = 0; i < points.size(); i += 1) {
-        normals.push_back(glm::normalize(points[i]));
-    }
-
-    std::vector<GLuint> indexes;
     for (int row = 0; row < rowCount; row += 1) {
         int triangleCount = row + 1;
-        int topIndex = row * (row + 1) / 2;
-        int bottomIndex = (row + 1) * (row + 2) / 2;
+        int topIndex = indexOffset + row * (row + 1) / 2;
+        int bottomIndex = indexOffset + (row + 1) * (row + 2) / 2;
         // degenerate triangle to reset the strip
         if (indexes.size() > 0) {
             indexes.push_back(indexes[indexes.size() - 1]);
@@ -112,6 +98,32 @@ void Rock::generate()
             indexes.push_back(topIndex++);
             indexes.push_back(bottomIndex++);
         }
+    }
+}
+
+static const float PI = 3.1415926535;
+
+void Rock::generate()
+{
+    cleanup();
+
+    std::vector<glm::vec3> points;
+    std::vector<GLuint> indexes;
+
+
+    addOctahedronFace(points, indexes, glm::mat3(1));
+    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(glm::mat4(1), PI / 2, glm::vec3(0, 1, 0))));
+    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(glm::mat4(1), PI, glm::vec3(0, 1, 0))));
+    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(glm::mat4(1), 3 * PI / 2, glm::vec3(0, 1, 0))));
+    glm::mat4 matrix = glm::rotate(glm::mat4(1), PI, glm::vec3(0, 0, 1));
+    addOctahedronFace(points, indexes, glm::mat3(matrix));
+    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(matrix, PI / 2, glm::vec3(0, 1, 0))));
+    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(matrix, PI, glm::vec3(0, 1, 0))));
+    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(matrix, 3 * PI / 2, glm::vec3(0, 1, 0))));
+
+    std::vector<glm::vec3> normals;
+    for (unsigned int i = 0; i < points.size(); i += 1) {
+        normals.push_back(glm::normalize(points[i]));
     }
 
 

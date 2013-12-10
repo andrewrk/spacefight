@@ -47,6 +47,7 @@ private:
     Rock *mRock;
 
     bool cullOn = true;
+    bool solidOn = true;
 
     SpaceBox *mSpaceBox;
 
