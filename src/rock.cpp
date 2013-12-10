@@ -67,7 +67,7 @@ Rock::Rock(ResourceBundle *bundle)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     image.doPixelStoreAlignment();
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.width(), image.height(), 0, image.format(), image.type(), image.pixels());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, image.format(), image.type(), image.pixels());
     image.resetPixelStoreAlignment();
 
 

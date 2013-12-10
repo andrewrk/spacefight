@@ -264,7 +264,21 @@ void ResourceBundle::Image::resetPixelStoreAlignment()
 
 GLenum ResourceBundle::Image::format() const
 {
-    return GL_BGRA;
+    unsigned int redMask = FreeImage_GetRedMask(mBmp);
+    unsigned int greenMask = FreeImage_GetGreenMask(mBmp);
+    unsigned int blueMask = FreeImage_GetBlueMask(mBmp);
+    char hasAlpha = FreeImage_IsTransparent(mBmp);
+
+    if (redMask == 0x0000ff00 && greenMask == 0x00ff0000 && blueMask == 0xff000000 && hasAlpha) {
+        return GL_RGBA;
+    } else if (redMask == 0x0000ff && greenMask == 0x00ff00 && blueMask == 0xff0000 && !hasAlpha) {
+        return GL_RGB;
+    } else if (redMask == 0xff0000 && greenMask == 0x00ff00 && blueMask == 0x0000ff) {
+        return hasAlpha ? GL_BGRA : GL_BGR;
+    } else {
+        std::cerr << "unrecognized image format\n";
+        exit(1);
+    }
 }
 
 GLenum ResourceBundle::Image::type() const

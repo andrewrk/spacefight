@@ -96,9 +96,9 @@ Scene::Scene() :
     m3DRenderContext.lightIntensityDiffuse = glm::vec3(0.5, 0.5, 0.5);
     m3DRenderContext.lightIntensitySpecular = glm::vec3(0.8, 0.8, 0.8);
     m3DRenderContext.materialReflectivityAmbient = glm::vec3(0.7, 0.7, 0.7);
-    m3DRenderContext.materialReflectivityDiffuse = glm::vec3(0.8, 0.8, 0.8);
-    m3DRenderContext.materialReflectivitySpecular = glm::vec3(0.4, 0.4, 0.4);
-    m3DRenderContext.materialSpecularShininess = 10.0f;
+    m3DRenderContext.materialReflectivityDiffuse = glm::vec3(0.9, 0.9, 0.9);
+    m3DRenderContext.materialReflectivitySpecular = glm::vec3(0.1, 0.1, 0.1);
+    m3DRenderContext.materialSpecularShininess = 50.0f;
 
     mSkyBoxRenderContext = m3DRenderContext;
     mSkyBoxRenderContext.model = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
