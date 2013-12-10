@@ -115,24 +115,39 @@ void Rock::generate()
     glm::vec3 zNeg(0, 0, -1);
     glm::vec3 xNeg(-1, 0, 0);
     glm::vec3 xPos(1, 0, 0);
+    glm::vec2 uvPos(0, 0);
+    float uvSideLen = 1.0f / (float)rowCount;
+    glm::vec2 uvZPos(0, 1);
+    glm::vec2 uvZNeg = -uvZPos;
+    glm::vec2 uvXPos(-1, 0);
+    glm::vec2 uvXNeg = -uvXPos;
     for (int row = 0; row <= rowCount; row += 1) {
         glm::vec3 pt = top + downLeftDir * (row * sideLen);
         points.push_back(pt);
+        texCoords.push_back(uvPos);
         for (int i = 1; i <= row; i += 1) {
             pt += zPos * sideLen;
+            uvPos += uvZPos * uvSideLen;
             points.push_back(pt);
+            texCoords.push_back(uvPos);
         }
         for (int i = 1; i <= row; i += 1) {
             pt += xNeg * sideLen;
+            uvPos += uvXNeg * uvSideLen;
             points.push_back(pt);
+            texCoords.push_back(uvPos);
         }
         for (int i = 1; i <= row; i += 1) {
             pt += zNeg * sideLen;
+            uvPos += uvZNeg * uvSideLen;
             points.push_back(pt);
+            texCoords.push_back(uvPos);
         }
         for (int i = 1; i < row; i += 1) {
             pt += xPos * sideLen;
+            uvPos += uvXPos * uvSideLen;
             points.push_back(pt);
+            texCoords.push_back(uvPos);
         }
     }
 
@@ -189,6 +204,7 @@ void Rock::generate()
         glm::vec3 pt = points[i];
         pt[1] = -pt[1];
         points.push_back(pt);
+        texCoords.push_back(texCoords[i]);
     }
     // add all the indexes again to indexes
     int indexEnd = indexes.size();
@@ -201,16 +217,12 @@ void Rock::generate()
         indexes.push_back(index);
     }
 
-
     std::vector<glm::vec3> normals;
     for (unsigned int i = 0; i < points.size(); i += 1) {
         glm::vec3 normal = glm::normalize(points[i]);
         normals.push_back(normal);
 
-        points[i] = (0.75f + randFloat() * 0.50f) * normal;
-        //points[i] = normal;
-
-        texCoords.push_back(glm::vec2(randFloat(), randFloat()));
+        points[i] = (0.8f + randFloat() * 0.4f) * normal;
     }
 
 
