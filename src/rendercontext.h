@@ -12,7 +12,8 @@ struct RenderContext {
     glm::mat4 mvp;
     glm::mat3 normal;
 
-    glm::vec4 lightPosition;
+    glm::vec3 lightDirection;
+    glm::vec3 lightDirectionEye;
     glm::vec3 lightIntensityAmbient;
     glm::vec3 lightIntensityDiffuse;
     glm::vec3 lightIntensitySpecular;
@@ -25,6 +26,7 @@ struct RenderContext {
     inline void calcMvpAndNormal() {
         calcMvp();
         normal = glm::inverseTranspose(glm::mat3(modelView));
+        lightDirectionEye = glm::normalize(normal * -lightDirection);
     }
 
     inline void calcMvp() {

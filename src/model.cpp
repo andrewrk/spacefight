@@ -4,7 +4,7 @@
 #include <iostream>
 
 static const GLchar *LIGHT_BLOCK_FIELDS[] = {
-    "Position",
+    "LightDirection",
     "La",
     "Ld",
     "Ls",
@@ -12,7 +12,7 @@ static const GLchar *LIGHT_BLOCK_FIELDS[] = {
 };
 
 enum LightBlockField {
-    LIGHT_POSITION,
+    LIGHT_DIRECTION,
     LIGHT_LA,
     LIGHT_LD,
     LIGHT_LS
@@ -144,7 +144,7 @@ void Model::draw(const RenderContext &renderContext) const
     mLightBlock->set(LIGHT_LA, renderContext.lightIntensityAmbient);
     mLightBlock->set(LIGHT_LD, renderContext.lightIntensityDiffuse);
     mLightBlock->set(LIGHT_LS, renderContext.lightIntensitySpecular);
-    mLightBlock->set(LIGHT_POSITION, renderContext.lightPosition);
+    mLightBlock->set(LIGHT_DIRECTION, renderContext.lightDirectionEye);
     mLightBlock->update();
 
     mMaterialBlock->set(MATERIAL_KA, renderContext.materialReflectivityAmbient);

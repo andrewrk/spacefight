@@ -91,14 +91,14 @@ Scene::Scene() :
     m3DRenderContext.projection = glm::perspective(FIELD_OF_VIEW,
         mScreenWidth / (float)mScreenHeight, 0.1f, 200.0f);
     m3DRenderContext.model = glm::mat4(1.0);
-    m3DRenderContext.lightPosition = glm::vec4(1.0, -3.0, 0.0, 1.0);
+    m3DRenderContext.lightDirection = glm::vec3(0, 0, -1);
     m3DRenderContext.lightIntensityAmbient = glm::vec3(0.2, 0.2, 0.2);
     m3DRenderContext.lightIntensityDiffuse = glm::vec3(0.5, 0.5, 0.5);
     m3DRenderContext.lightIntensitySpecular = glm::vec3(0.8, 0.8, 0.8);
-    m3DRenderContext.materialReflectivityAmbient = glm::vec3(0.5, 0.5, 0.5);
-    m3DRenderContext.materialReflectivityDiffuse = glm::vec3(0.5, 0.5, 0.5);
-    m3DRenderContext.materialReflectivitySpecular = glm::vec3(0.5, 0.5, 0.5);
-    m3DRenderContext.materialSpecularShininess = 100.0f;
+    m3DRenderContext.materialReflectivityAmbient = glm::vec3(0.7, 0.7, 0.7);
+    m3DRenderContext.materialReflectivityDiffuse = glm::vec3(0.8, 0.8, 0.8);
+    m3DRenderContext.materialReflectivitySpecular = glm::vec3(0.4, 0.4, 0.4);
+    m3DRenderContext.materialSpecularShininess = 10.0f;
 
     mSkyBoxRenderContext = m3DRenderContext;
     mSkyBoxRenderContext.model = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
@@ -117,7 +117,7 @@ Scene::Scene() :
     m2DRenderContext.projection = glm::ortho(0.0f, (float)mScreenWidth,
         (float)mScreenHeight, 0.0f);
     m2DRenderContext.view = glm::mat4(1.0);
-    m2DRenderContext.calcMvpAndNormal();
+    m2DRenderContext.calcMvp();
 
     mBundle.getSpriteSheet("cockpit", mCockpitSpritesheet);
     mVelDisplayOutline = new Sprite(mCockpitSpritesheet, "radarCircle", m2DRenderContext);
@@ -368,7 +368,7 @@ void Scene::draw()
     mVelDisplayArrow->draw();
 
     m2DRenderContext.model = glm::translate(glm::mat4(1.0), glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
-    m2DRenderContext.calcMvpAndNormal();
+    m2DRenderContext.calcMvp();
     mFpsLabel->draw(m2DRenderContext);
 }
 
