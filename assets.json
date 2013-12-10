@@ -10,6 +10,11 @@
       glob: "models/*.obj",
     },
   ],
+  files: {
+    rockTexture: {
+      path: "assets/img/rock.png",
+    },
+  },
   textures: {
     cockpit: {
       images: {

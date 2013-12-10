@@ -8,6 +8,7 @@
 #include "model.h"
 #include "modelinstance.h"
 #include "rendercontext.h"
+#include "rock.h"
 
 #include "resourcebundle.h"
 
@@ -43,6 +44,9 @@ private:
 
     Model *mMonkeyModel;
     std::vector<ModelInstance> mMonkeys;
+    Rock *mRock;
+
+    bool cullOn = true;
 
     SpaceBox *mSpaceBox;
 

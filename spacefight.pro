@@ -18,7 +18,8 @@ SOURCES += \
     src/spacebox.cpp \
     src/spritesheet.cpp \
     src/sprite.cpp \
-    src/modelinstance.cpp
+    src/modelinstance.cpp \
+    src/rock.cpp
 
 
 HEADERS += \
@@ -32,7 +33,8 @@ HEADERS += \
     src/spacebox.h \
     src/spritesheet.h \
     src/sprite.h \
-    src/modelinstance.h
+    src/modelinstance.h \
+    src/rock.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2

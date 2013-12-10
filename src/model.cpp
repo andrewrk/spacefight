@@ -104,6 +104,8 @@ Model::Model(ResourceBundle *bundle, const std::string &filename)
 
             glEnableVertexAttribArray(vertexPositionIndex);
             glVertexAttribPointer(vertexPositionIndex, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+        } else {
+            std::cerr << "warning: shader ignoring vertex position data\n";
         }
 
         if (vertexNormalIndex != -1) {
@@ -113,6 +115,8 @@ Model::Model(ResourceBundle *bundle, const std::string &filename)
 
             glEnableVertexAttribArray(vertexNormalIndex);
             glVertexAttribPointer(vertexNormalIndex, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+        } else {
+            std::cerr << "warning: shader ignoring vertex normal data\n";
         }
 
     }

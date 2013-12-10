@@ -146,6 +146,8 @@ Scene::Scene() :
         monkey->pos = dir * radius;
         monkey->update();
     }
+    mRock = new Rock(&mBundle);
+    mRock->generate();
 
     initJoystick();
 
@@ -288,6 +290,15 @@ void Scene::update(float /* dt */, float dx)
     if (state[SDL_SCANCODE_W]) joyEngine += 1.0;
     if (state[SDL_SCANCODE_S]) joyEngine -= 1.0;
 
+    if (state[SDL_SCANCODE_C]) {
+        cullOn = !cullOn;
+        if (cullOn) {
+            glEnable(GL_CULL_FACE);
+        } else {
+            glDisable(GL_CULL_FACE);
+        }
+    }
+
 
     joyX = clamp(-1.0f, joyX, 1.0f);
     joyY = clamp(-1.0f, joyY, 1.0f);
@@ -353,6 +364,9 @@ void Scene::draw()
         ModelInstance *monkey = &mMonkeys[i];
         monkey->draw();
     }
+    m3DRenderContext.model = glm::scale(glm::mat4(1), glm::vec3(10, 10, 10));
+    m3DRenderContext.calcMvpAndNormal();
+    mRock->draw(m3DRenderContext);
 
 
     glDisable(GL_DEPTH_TEST);
