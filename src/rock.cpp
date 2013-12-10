@@ -87,42 +87,6 @@ Rock::~Rock()
 
 static const float invSqrt2 = 0.7071067811865475; // 1/sqrt(2)
 
-static void addOctahedronFace(std::vector<glm::vec3> &points,
-                              std::vector<GLuint> &indexes,
-                              const glm::mat3 &matrix)
-{
-    int rowCount = 10;
-
-    float sideLen = 2 * invSqrt2 / (float)rowCount;
-
-    int indexOffset = points.size();
-
-    glm::vec3 top(0, 1, 0);
-    glm::vec3 bottomLeft(invSqrt2, 0, -invSqrt2);
-    glm::vec3 downLeftDir = glm::normalize(bottomLeft - top);
-    glm::vec3 rightDir(0, 0, 1);
-    for (int row = 0; row <= rowCount; row += 1) {
-        glm::vec3 start = top + downLeftDir * (row * sideLen);
-        for (int i = 0; i <= row; i += 1) {
-            points.push_back(matrix * (start + rightDir * (i * sideLen)));
-        }
-    }
-
-    for (int row = 0; row < rowCount; row += 1) {
-        int triangleCount = row + 1;
-        int topIndex = indexOffset + row * (row + 1) / 2;
-        int bottomIndex = indexOffset + (row + 1) * (row + 2) / 2;
-        // degenerate triangle to reset the strip
-        if (indexes.size() > 0) {
-            indexes.push_back(indexes[indexes.size() - 1]);
-        }
-        indexes.push_back(bottomIndex++);
-        for (int i = 0; i < triangleCount; i += 1) {
-            indexes.push_back(topIndex++);
-            indexes.push_back(bottomIndex++);
-        }
-    }
-}
 
 static const float PI = 3.1415926535;
 
@@ -136,26 +100,115 @@ void Rock::generate()
     cleanup();
 
     std::vector<glm::vec3> points;
+    std::vector<glm::vec2> texCoords;
     std::vector<GLuint> indexes;
 
+    int rowCount = 10;
 
-    addOctahedronFace(points, indexes, glm::mat3(1));
-    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(glm::mat4(1), PI / 2, glm::vec3(0, 1, 0))));
-    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(glm::mat4(1), PI, glm::vec3(0, 1, 0))));
-    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(glm::mat4(1), 3 * PI / 2, glm::vec3(0, 1, 0))));
-    glm::mat4 matrix = glm::rotate(glm::mat4(1), PI, glm::vec3(0, 0, 1));
-    addOctahedronFace(points, indexes, glm::mat3(matrix));
-    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(matrix, PI / 2, glm::vec3(0, 1, 0))));
-    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(matrix, PI, glm::vec3(0, 1, 0))));
-    addOctahedronFace(points, indexes, glm::mat3(glm::rotate(matrix, 3 * PI / 2, glm::vec3(0, 1, 0))));
+    float sideLen = 2 * invSqrt2 / (float)rowCount;
+
+
+    glm::vec3 top(0, 1, 0);
+    glm::vec3 bottomLeft(invSqrt2, 0, -invSqrt2);
+    glm::vec3 downLeftDir = glm::normalize(bottomLeft - top);
+    glm::vec3 zPos(0, 0, 1);
+    glm::vec3 zNeg(0, 0, -1);
+    glm::vec3 xNeg(-1, 0, 0);
+    glm::vec3 xPos(1, 0, 0);
+    for (int row = 0; row <= rowCount; row += 1) {
+        glm::vec3 pt = top + downLeftDir * (row * sideLen);
+        points.push_back(pt);
+        for (int i = 1; i <= row; i += 1) {
+            pt += zPos * sideLen;
+            points.push_back(pt);
+        }
+        for (int i = 1; i <= row; i += 1) {
+            pt += xNeg * sideLen;
+            points.push_back(pt);
+        }
+        for (int i = 1; i <= row; i += 1) {
+            pt += zNeg * sideLen;
+            points.push_back(pt);
+        }
+        for (int i = 1; i < row; i += 1) {
+            pt += xPos * sideLen;
+            points.push_back(pt);
+        }
+    }
+
+    // triangle on the cap
+    indexes.push_back(1);
+    indexes.push_back(0);
+    indexes.push_back(2);
+
+    indexes.push_back(0);
+    indexes.push_back(3);
+
+    indexes.push_back(0);
+    indexes.push_back(4);
+
+    indexes.push_back(0);
+    indexes.push_back(1);
+
+    int topIndex = 1;
+    int bottomIndex = 5;
+    for (int row = 1; row < rowCount; row += 1) {
+        int triangleCount = row + 1;
+        int rowStartTop = topIndex;
+        int rowStartBottom = bottomIndex;
+
+        indexes.push_back(bottomIndex);
+
+        indexes.push_back(bottomIndex++);
+        for (int i = 0; i < triangleCount; i += 1) {
+            indexes.push_back(topIndex++);
+            indexes.push_back(bottomIndex++);
+        }
+        topIndex -= 1;
+        for (int i = 0; i < triangleCount; i += 1) {
+            indexes.push_back(topIndex++);
+            indexes.push_back(bottomIndex++);
+        }
+        topIndex -= 1;
+        for (int i = 0; i < triangleCount; i += 1) {
+            indexes.push_back(topIndex++);
+            indexes.push_back(bottomIndex++);
+        }
+        topIndex -= 1;
+        for (int i = 0; i < triangleCount - 1; i += 1) {
+            indexes.push_back(topIndex++);
+            indexes.push_back(bottomIndex++);
+        }
+        indexes.push_back(rowStartTop);
+        indexes.push_back(rowStartBottom);
+    }
+    // add all the points except the bottom row to points again, flipping the Y
+    int pointsMidway = points.size();
+    int pointsExceptLastRow = pointsMidway - rowCount * 4;
+    for (int i = pointsExceptLastRow - 1; i >= 0; i -= 1) {
+        glm::vec3 pt = points[i];
+        pt[1] = -pt[1];
+        points.push_back(pt);
+    }
+    // add all the indexes again to indexes
+    int indexEnd = indexes.size();
+    for (int i = 0; i < indexEnd; i += 1) {
+        int index = points.size() - 1 - indexes[i];
+        // if the index is trying to be a bottom row index, adjust it accordingly
+        if (index < pointsMidway) {
+            index = pointsExceptLastRow + (pointsMidway - index);
+        }
+        indexes.push_back(index);
+    }
+
 
     std::vector<glm::vec3> normals;
-    std::vector<glm::vec2> texCoords;
     for (unsigned int i = 0; i < points.size(); i += 1) {
         glm::vec3 normal = glm::normalize(points[i]);
         normals.push_back(normal);
 
         points[i] = (0.75f + randFloat() * 0.50f) * normal;
+        //points[i] = normal;
 
         texCoords.push_back(glm::vec2(randFloat(), randFloat()));
     }
