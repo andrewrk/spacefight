@@ -1,5 +1,6 @@
 #include "scene.h"
 
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <iostream>
@@ -134,20 +135,25 @@ Scene::Scene() :
     mCrossHair->pos.y = mScreenHeight / 2.0f;
     mCrossHair->update();
 
+    mRockGenerator = new RockGenerator(&mBundle);
 
-    mMonkeyModel = new Model(&mBundle, "models/monkey.obj");
-    mMonkeys.resize(50);
-    const float objMaxRadius = 75.0f;
-    for (unsigned int i = 0; i < mMonkeys.size(); i += 1) {
-        ModelInstance *monkey = &mMonkeys[i];
-        monkey->init(mMonkeyModel, &m3DRenderContext);
-        float radius = objMaxRadius * randFloat();
-        glm::vec3 dir = glm::normalize(glm::vec3(randFloat(), randFloat(), randFloat()));
-        monkey->pos = dir * radius;
-        monkey->update();
+    mRockTypes.resize(50);
+    for (unsigned int i = 0; i < mRockTypes.size(); i += 1) {
+        Rock *rockType = &mRockTypes[i];
+        mRockGenerator->generate(*rockType);
     }
-    mRock = new Rock(&mBundle);
-    mRock->generate();
+    mAsteroids.resize(4);
+    const float objMaxRadius = 70.0f;
+    const float objMinRadius = 30.0f;
+    for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
+        DrawableInstance *asteroid = &mAsteroids[i];
+        asteroid->init(&mRockTypes[rand() % mRockTypes.size()], &m3DRenderContext);
+        float radius = objMinRadius + objMaxRadius * randFloat();
+        glm::vec3 dir = glm::normalize(glm::vec3(randFloat(), randFloat(), randFloat()));
+        asteroid->pos = dir * radius;
+        asteroid->scale = glm::vec3(15.0f, 15.0f, 15.0f);
+        asteroid->update();
+    }
 
     initJoystick();
 
@@ -159,8 +165,6 @@ Scene::Scene() :
 
 Scene::~Scene()
 {
-    delete mMonkeyModel;
-
     delete mLabelFactory;
 
     SDL_GL_DeleteContext(mContext);
@@ -352,13 +356,10 @@ void Scene::draw()
     glDepthMask(GL_TRUE);
 
 
-    for (unsigned int i = 0; i < mMonkeys.size(); i += 1) {
-        ModelInstance *monkey = &mMonkeys[i];
-        monkey->draw();
+    for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
+        DrawableInstance *asteroid = &mAsteroids[i];
+        asteroid->draw();
     }
-    m3DRenderContext.model = glm::scale(glm::mat4(1), glm::vec3(10, 10, 10));
-    m3DRenderContext.calcMvpAndNormal();
-    mRock->draw(m3DRenderContext);
 
 
     glDisable(GL_DEPTH_TEST);

@@ -15,11 +15,11 @@
 
 #include <GL/glew.h>
 
-#include "texture.h"
+#include "drawable.h"
 
 class ResourceBundle;
 
-class Model
+class Model : public Drawable
 {
 public:
     Model(ResourceBundle *bundle, const std::string &filename);

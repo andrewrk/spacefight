@@ -5,8 +5,7 @@
 #include <glm/glm.hpp>
 
 #include "shader.h"
-#include "model.h"
-#include "modelinstance.h"
+#include "drawableinstance.h"
 #include "rendercontext.h"
 #include "rock.h"
 
@@ -17,6 +16,7 @@
 
 #include "label.h"
 #include "labelfactory.h"
+#include "rockgenerator.h"
 
 #include "spacebox.h"
 
@@ -42,9 +42,8 @@ private:
     int mScreenWidth;
     int mScreenHeight;
 
-    Model *mMonkeyModel;
-    std::vector<ModelInstance> mMonkeys;
-    Rock *mRock;
+    std::vector<Rock> mRockTypes;
+    std::vector<DrawableInstance> mAsteroids;
 
     bool cullOn = true;
     bool solidOn = true;
@@ -52,6 +51,8 @@ private:
     SpaceBox *mSpaceBox;
 
     LabelFactory *mLabelFactory;
+
+    RockGenerator *mRockGenerator;
 
     float mMaxSpf;
     float mFps;

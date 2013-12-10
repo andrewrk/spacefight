@@ -5,49 +5,39 @@
 
 #include "shader.h"
 #include "rendercontext.h"
+#include "drawable.h"
 
 #include <memory>
 
 class ResourceBundle;
+class RockGenerator;
 
-class Rock
+class Rock : public Drawable
 {
 public:
-    Rock(ResourceBundle *bundle);
+    Rock();
     ~Rock();
 
     void generate();
 
-    void draw(const RenderContext &renderContext);
+    void draw(const RenderContext &renderContext) const;
 
 private:
+    const RockGenerator *generator;
+
     GLuint vertexArrayObject = 0;
     GLuint vertexPositionBuffer = 0;
     GLuint vertexNormalBuffer = 0;
     GLuint vertexIndexBuffer = 0;
     GLuint texCoordBuffer = 0;
 
-    GLuint mTexture = 0;
-
-    Shader *mShader;
-
-    GLint attribPositionIndex;
-    GLint attribNormalIndex;
-    GLint attribTexCoordIndex;
-
-    std::unique_ptr<Shader::UniformBlock> mLightBlock;
-    std::unique_ptr<Shader::UniformBlock> mMaterialBlock;
-
-    GLuint mShaderModelViewMatrix;
-    GLuint mShaderNormalMatrix;
-    GLuint mShaderProjectionMatrix;
-    GLuint mShaderMvp;
-    GLuint texUniformId;
 
 
     int elementCount;
 
     void cleanup();
+
+    friend class RockGenerator;
 };
 
 #endif // ROCK_H

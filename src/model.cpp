@@ -1,37 +1,8 @@
 #include "model.h"
 #include "resourcebundle.h"
+#include "lightblock.h"
 #include <cassert>
 #include <iostream>
-
-static const GLchar *LIGHT_BLOCK_FIELDS[] = {
-    "LightDirection",
-    "La",
-    "Ld",
-    "Ls",
-    NULL,
-};
-
-enum LightBlockField {
-    LIGHT_DIRECTION,
-    LIGHT_LA,
-    LIGHT_LD,
-    LIGHT_LS
-};
-
-static const GLchar *MATERIAL_BLOCK_FIELDS[] = {
-    "Ka",
-    "Kd",
-    "Ks",
-    "Shininess",
-    NULL,
-};
-
-enum MaterialBlock {
-    MATERIAL_KA,
-    MATERIAL_KD,
-    MATERIAL_KS,
-    MATERIAL_SHININESS
-};
 
 Model::Model(ResourceBundle *bundle, const std::string &filename)
 {

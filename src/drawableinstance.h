@@ -1,16 +1,16 @@
 #ifndef MODELINSTANCE_H
 #define MODELINSTANCE_H
 
-#include "model.h"
+#include "drawable.h"
 #include "rendercontext.h"
 
 #include <glm/glm.hpp>
 
-class ModelInstance
+class DrawableInstance
 {
 public:
-    ModelInstance(const Model *model, RenderContext *renderContext);
-    ModelInstance(); // if you use this constructor, call init
+    DrawableInstance(const Drawable *drawable, RenderContext *renderContext);
+    DrawableInstance(); // if you use this constructor, call init
 
     glm::vec3 pos;
     glm::vec3 scale;
@@ -19,12 +19,12 @@ public:
     float yaw;
     glm::vec3 anchor;
 
-    void init(const Model *model, RenderContext *renderContext);
+    void init(const Drawable *drawable, RenderContext *renderContext);
     void update();
     void draw();
 
 private:
-    const Model *mModel;
+    const Drawable *mDrawable;
 
     glm::mat4 mModelMatrix;
     RenderContext *mRenderContext;
