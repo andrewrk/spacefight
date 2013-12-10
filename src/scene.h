@@ -43,7 +43,13 @@ private:
     int mScreenHeight;
 
     std::vector<Rock> mRockTypes;
-    std::vector<DrawableInstance> mAsteroids;
+
+    struct Asteroid {
+        DrawableInstance drawable;
+        glm::vec3 vel;
+    };
+
+    std::vector<Asteroid> mAsteroids;
 
     bool cullOn = true;
     bool solidOn = true;

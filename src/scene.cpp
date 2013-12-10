@@ -31,6 +31,10 @@ static float randFloat() {
     return rand() / (float) RAND_MAX;
 }
 
+static glm::vec3 randDir() {
+    return glm::normalize(glm::vec3(randFloat(), randFloat(), randFloat()));
+}
+
 Scene::Scene() :
     mBundle("assets.bundle")
 {
@@ -146,13 +150,13 @@ Scene::Scene() :
     const float objMaxRadius = 70.0f;
     const float objMinRadius = 30.0f;
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
-        DrawableInstance *asteroid = &mAsteroids[i];
-        asteroid->init(&mRockTypes[rand() % mRockTypes.size()], &m3DRenderContext);
+        Asteroid *asteroid = &mAsteroids[i];
+        asteroid->vel = randDir() * 0.1f;
+        asteroid->drawable.init(&mRockTypes[rand() % mRockTypes.size()], &m3DRenderContext);
         float radius = objMinRadius + objMaxRadius * randFloat();
-        glm::vec3 dir = glm::normalize(glm::vec3(randFloat(), randFloat(), randFloat()));
-        asteroid->pos = dir * radius;
-        asteroid->scale = glm::vec3(15.0f, 15.0f, 15.0f);
-        asteroid->update();
+        asteroid->drawable.pos = randDir() * radius;
+        asteroid->drawable.scale = glm::vec3(15.0f, 15.0f, 15.0f);
+        asteroid->drawable.update();
     }
 
     initJoystick();
@@ -320,13 +324,18 @@ void Scene::update(float /* dt */, float dx)
     m3DRenderContext.view = glm::lookAt(mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
     m3DRenderContext.calcMvpAndNormal();
 
+    for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
+        Asteroid *asteroid = &mAsteroids[i];
+        asteroid->drawable.pos += asteroid->vel * dx;
+        asteroid->drawable.update();
+    }
+
     mSkyBoxRenderContext.view = lookWithoutPosition(mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
     mSkyBoxRenderContext.calcMvpAndNormal();
 
     // calculate the magnitude and direction of velocity in the direction other than forward or backward
     // convert velocity vector from absolute coordinates into coordinate system relative to ship orientation
     // then we can simply take 2 of the 3 components.
-
     glm::mat3 theMatrix = changeBasisMatrix(mCameraForward, mCameraUp);
     glm::vec3 relVel = theMatrix * mCameraVelocity;
     glm::vec2 relVel2D(relVel[0], relVel[1]);
@@ -357,8 +366,8 @@ void Scene::draw()
 
 
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
-        DrawableInstance *asteroid = &mAsteroids[i];
-        asteroid->draw();
+        Asteroid *asteroid = &mAsteroids[i];
+        asteroid->drawable.draw();
     }
 
 
