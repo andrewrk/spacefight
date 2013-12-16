@@ -90,7 +90,7 @@ Scene::Scene() :
 
     mCameraForward = glm::vec3(0, -1.0, 0);
     mCameraUp = glm::vec3(0, 0, 1);
-    mCameraPosition = glm::vec3(0, 10.0, 0);
+    mCameraPosition = glm::vec3(0, 0, 0);
     mCameraVelocity = glm::vec3(0, 0, 0);
 
     m3DRenderContext.projection = glm::perspective(FIELD_OF_VIEW,

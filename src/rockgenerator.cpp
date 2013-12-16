@@ -29,6 +29,8 @@ RockGenerator::RockGenerator(ResourceBundle *bundle)
     glBindTexture(GL_TEXTURE_2D, mTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
     image.doPixelStoreAlignment();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, image.format(), image.type(), image.pixels());
     image.resetPixelStoreAlignment();
@@ -62,7 +64,6 @@ void RockGenerator::generate(Rock &rock)
     rock.generator = this;
 
     std::vector<glm::vec3> points;
-    std::vector<glm::vec2> texCoords;
     std::vector<GLuint> indexes;
 
     int rowCount = 10;
@@ -77,39 +78,25 @@ void RockGenerator::generate(Rock &rock)
     glm::vec3 zNeg(0, 0, -1);
     glm::vec3 xNeg(-1, 0, 0);
     glm::vec3 xPos(1, 0, 0);
-    glm::vec2 uvPos(0, 0);
-    float uvSideLen = 1.0f / (float)rowCount;
-    glm::vec2 uvZPos(0, 1);
-    glm::vec2 uvZNeg = -uvZPos;
-    glm::vec2 uvXPos(-1, 0);
-    glm::vec2 uvXNeg = -uvXPos;
+
     for (int row = 0; row <= rowCount; row += 1) {
         glm::vec3 pt = top + downLeftDir * (row * sideLen);
         points.push_back(pt);
-        texCoords.push_back(uvPos);
         for (int i = 1; i <= row; i += 1) {
             pt += zPos * sideLen;
-            uvPos += uvZPos * uvSideLen;
             points.push_back(pt);
-            texCoords.push_back(uvPos);
         }
         for (int i = 1; i <= row; i += 1) {
             pt += xNeg * sideLen;
-            uvPos += uvXNeg * uvSideLen;
             points.push_back(pt);
-            texCoords.push_back(uvPos);
         }
         for (int i = 1; i <= row; i += 1) {
             pt += zNeg * sideLen;
-            uvPos += uvZNeg * uvSideLen;
             points.push_back(pt);
-            texCoords.push_back(uvPos);
         }
         for (int i = 1; i < row; i += 1) {
             pt += xPos * sideLen;
-            uvPos += uvXPos * uvSideLen;
             points.push_back(pt);
-            texCoords.push_back(uvPos);
         }
     }
 
@@ -166,7 +153,6 @@ void RockGenerator::generate(Rock &rock)
         glm::vec3 pt = points[i];
         pt[1] = -pt[1];
         points.push_back(pt);
-        texCoords.push_back(texCoords[i]);
     }
     // add all the indexes again to indexes
     int indexEnd = indexes.size();
@@ -174,19 +160,23 @@ void RockGenerator::generate(Rock &rock)
         int index = points.size() - 1 - indexes[i];
         // if the index is trying to be a bottom row index, adjust it accordingly
         if (index < pointsMidway) {
-            index = pointsExceptLastRow + (pointsMidway - index);
+            index = pointsExceptLastRow + (pointsMidway - index - 1);
         }
         indexes.push_back(index);
     }
 
+    std::vector<glm::vec2> texCoords;
     std::vector<glm::vec3> normals;
     for (unsigned int i = 0; i < points.size(); i += 1) {
         glm::vec3 normal = glm::normalize(points[i]);
         normals.push_back(normal);
 
         points[i] = (0.8f + randFloat() * 0.4f) * normal;
-    }
 
+        texCoords.push_back(glm::vec2(
+                0.5 + atan2(normal[2], normal[0]) / (2 * PI),
+                0.5 - asin(normal[1]) / PI));
+    }
 
     rock.elementCount = indexes.size();
 
