@@ -23,6 +23,8 @@
 #include "spritesheet.h"
 #include "sprite.h"
 
+#include "boundarysphere.h"
+
 class Scene
 {
 public:
@@ -71,7 +73,7 @@ private:
     Sprite *mForwardVelArrow;
 
     float mArenaRadius;
-
+    BoundarySphere *mBoundarySphere;
 
     std::vector<SDL_Joystick*> mJoysticks;
 

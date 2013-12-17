@@ -21,7 +21,8 @@ SOURCES += \
     src/rock.cpp \
     src/drawableinstance.cpp \
     src/rockgenerator.cpp \
-    src/octahedron.cpp
+    src/octahedron.cpp \
+    src/boundarysphere.cpp
 
 
 HEADERS += \
@@ -40,7 +41,8 @@ HEADERS += \
     src/drawableinstance.h \
     src/rockgenerator.h \
     src/lightblock.h \
-    src/octahedron.h
+    src/octahedron.h \
+    src/boundarysphere.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2
@@ -65,5 +67,7 @@ OTHER_FILES += \
     src/shaders/cubemap.vert \
     src/shaders/cubemap.frag \
     src/shaders/rock.vert \
-    src/shaders/rock.frag
+    src/shaders/rock.frag \
+    src/shaders/boundarysphere.vert \
+    src/shaders/boundarysphere.frag
 

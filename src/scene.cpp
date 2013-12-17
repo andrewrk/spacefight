@@ -90,6 +90,8 @@ Scene::Scene() :
 
 
     mArenaRadius = 150.0f;
+    mBoundarySphere = new BoundarySphere(&mBundle);
+    mBoundarySphere->generate(20);
 
     mCameraForward = glm::vec3(0, -1.0, 0);
     mCameraUp = glm::vec3(0, 0, 1);
@@ -110,7 +112,6 @@ Scene::Scene() :
 
     mSkyBoxRenderContext = m3DRenderContext;
     mSkyBoxRenderContext.model = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
-
 
 
     mSpaceBox = new SpaceBox(&mBundle);
@@ -380,6 +381,10 @@ void Scene::draw()
     glDepthMask(GL_FALSE);
     mSpaceBox->draw(mSkyBoxRenderContext);
     glDepthMask(GL_TRUE);
+
+    m3DRenderContext.model = glm::scale(glm::mat4(1), glm::vec3(mArenaRadius));
+    m3DRenderContext.calcMvpAndNormal();
+    mBoundarySphere->draw(m3DRenderContext);
 
 
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
