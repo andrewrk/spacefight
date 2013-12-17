@@ -341,7 +341,7 @@ void Scene::update(float /* dt */, float dx)
     glm::vec2 relVel2D(relVel[0], relVel[1]);
     float relVelMagnitude = glm::length(relVel2D);
     if (relVelMagnitude > 0) {
-        mVelDisplayArrow->rotation = atan2(relVel2D[1], relVel2D[0]);
+        mVelDisplayArrow->rotation = atan2(-relVel2D[1], relVel2D[0]);
         mVelDisplayArrow->scale = glm::vec3(relVelMagnitude / 0.1);
     } else {
         mVelDisplayArrow->scale = glm::vec3(0);
