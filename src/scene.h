@@ -70,6 +70,8 @@ private:
     Sprite *mCrossHair;
     Sprite *mForwardVelArrow;
 
+    float mArenaRadius;
+
 
     std::vector<SDL_Joystick*> mJoysticks;
 

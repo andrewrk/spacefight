@@ -20,7 +20,8 @@ SOURCES += \
     src/sprite.cpp \
     src/rock.cpp \
     src/drawableinstance.cpp \
-    src/rockgenerator.cpp
+    src/rockgenerator.cpp \
+    src/octahedron.cpp
 
 
 HEADERS += \
@@ -38,7 +39,8 @@ HEADERS += \
     src/drawable.h \
     src/drawableinstance.h \
     src/rockgenerator.h \
-    src/lightblock.h
+    src/lightblock.h \
+    src/octahedron.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2

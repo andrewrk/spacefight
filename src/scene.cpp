@@ -14,20 +14,20 @@
 #include <SDL2/SDL_joystick.h>
 
 
-const float CAMERA_ROTATION_SPEED = 0.0262f;
+static const float CAMERA_ROTATION_SPEED = 0.0262f;
 
-const float EPSILON = 0.0000000001;
-const float MAX_DISPLAY_FPS = 90000;
-const float TARGET_FPS = 60.0;
-const float TARGET_SPF = 1.0 / TARGET_FPS;
-const float FPS_SMOOTHNESS = 0.9;
-const float FPS_ONE_FRAME_WEIGHT = 1.0 - FPS_SMOOTHNESS;
+static const float EPSILON = 0.0000000001;
+static const float MAX_DISPLAY_FPS = 90000;
+static const float TARGET_FPS = 60.0;
+static const float TARGET_SPF = 1.0 / TARGET_FPS;
+static const float FPS_SMOOTHNESS = 0.9;
+static const float FPS_ONE_FRAME_WEIGHT = 1.0 - FPS_SMOOTHNESS;
 
-const float ENGINE_THRUST = 0.001;
+static const float ENGINE_THRUST = 0.001;
 
-const float FIELD_OF_VIEW = 1.047;
+static const float FIELD_OF_VIEW = 1.047;
 
-const float PI = 3.14159265358979;
+static const float PI = 3.14159265358979;
 
 static float randFloat() {
     return rand() / (float) RAND_MAX;
@@ -89,6 +89,7 @@ Scene::Scene() :
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
+    mArenaRadius = 150.0f;
 
     mCameraForward = glm::vec3(0, -1.0, 0);
     mCameraUp = glm::vec3(0, 0, 1);
@@ -96,7 +97,7 @@ Scene::Scene() :
     mCameraVelocity = glm::vec3(0, 0, 0);
 
     m3DRenderContext.projection = glm::perspective(FIELD_OF_VIEW,
-        mScreenWidth / (float)mScreenHeight, 0.1f, 200.0f);
+        mScreenWidth / (float)mScreenHeight, 0.1f, mArenaRadius * 2 + 10.0f);
     m3DRenderContext.model = glm::mat4(1.0);
     m3DRenderContext.lightDirection = glm::vec3(0, 0, -1);
     m3DRenderContext.lightIntensityAmbient = glm::vec3(0.2, 0.2, 0.2);
