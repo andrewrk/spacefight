@@ -68,6 +68,7 @@ private:
     Sprite *mVelDisplayOutline;
     Sprite *mVelDisplayArrow;
     Sprite *mCrossHair;
+    Sprite *mForwardVelArrow;
 
 
     std::vector<SDL_Joystick*> mJoysticks;

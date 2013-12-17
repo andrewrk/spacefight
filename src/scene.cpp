@@ -27,6 +27,8 @@ const float ENGINE_THRUST = 0.001;
 
 const float FIELD_OF_VIEW = 1.047;
 
+const float PI = 3.14159265358979;
+
 static float randFloat() {
     return rand() / (float) RAND_MAX;
 }
@@ -133,6 +135,12 @@ Scene::Scene() :
     mVelDisplayArrow = new Sprite(mCockpitSpritesheet, "arrow", m2DRenderContext);
     mVelDisplayArrow->pos = mVelDisplayOutline->pos;
     mVelDisplayArrow->update();
+
+    const int margin = 20;
+    mForwardVelArrow = new Sprite(mCockpitSpritesheet, "arrow", m2DRenderContext);
+    mForwardVelArrow->pos = mVelDisplayOutline->pos - glm::vec3(mVelDisplayOutline->width() / 2 + margin, 0, 0);
+    mForwardVelArrow->rotation = PI / 2;
+    mForwardVelArrow->update();
 
     mCrossHair = new Sprite(mCockpitSpritesheet, "crosshair", m2DRenderContext);
     mCrossHair->pos.x = mScreenWidth / 2.0f;
@@ -253,6 +261,10 @@ static glm::mat3 changeBasisMatrix(const glm::vec3 &forward, const glm::vec3 &up
     return Result;
 }
 
+static float velToScale(float vel) {
+    return vel / 0.1;
+}
+
 void Scene::update(float /* dt */, float dx)
 {
     flushEvents();
@@ -339,14 +351,18 @@ void Scene::update(float /* dt */, float dx)
     glm::mat3 theMatrix = changeBasisMatrix(mCameraForward, mCameraUp);
     glm::vec3 relVel = theMatrix * mCameraVelocity;
     glm::vec2 relVel2D(relVel[0], relVel[1]);
+    float forwardVel = -relVel[2];
     float relVelMagnitude = glm::length(relVel2D);
     if (relVelMagnitude > 0) {
         mVelDisplayArrow->rotation = atan2(-relVel2D[1], relVel2D[0]);
-        mVelDisplayArrow->scale = glm::vec3(relVelMagnitude / 0.1);
+        mVelDisplayArrow->scale = glm::vec3(velToScale(relVelMagnitude));
     } else {
         mVelDisplayArrow->scale = glm::vec3(0);
     }
     mVelDisplayArrow->update();
+
+    mForwardVelArrow->scale = glm::vec3(velToScale(forwardVel));
+    mForwardVelArrow->update();
 
     std::stringstream ss;
     ss << mFps;
@@ -370,12 +386,12 @@ void Scene::draw()
         asteroid->drawable.draw();
     }
 
-
     glDisable(GL_DEPTH_TEST);
 
     mCrossHair->draw();
     mVelDisplayOutline->draw();
     mVelDisplayArrow->draw();
+    mForwardVelArrow->draw();
 
     m2DRenderContext.model = glm::translate(glm::mat4(1.0), glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
     m2DRenderContext.calcMvp();
