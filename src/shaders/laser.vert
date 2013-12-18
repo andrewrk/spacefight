@@ -3,7 +3,7 @@
 in vec3 PosStart;
 in vec3 PosEnd;
 in float Offset;
-out vec3 FragPosition;
+out float FragOffset;
 
 uniform mat4 MVP; // projection * ModelViewMatrix
 
@@ -22,6 +22,7 @@ void main()
     startpos.x += linedir2d.y;
     startpos.y -= linedir2d.x;
 
+    FragOffset = max(min(1 - Offset / 0.1, 1.0), 0);
     gl_Position = startpos;
 }
 

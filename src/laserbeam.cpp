@@ -11,17 +11,17 @@ struct LineInfo {
 };
 
 static GLfloat posStartData[] = {
-    -1, 0, 0,
-    -1, 0, 0,
-    1, 0, 0,
-    1, 0, 0,
+    0, 0, -1,
+    0, 0, -1,
+    0, 0, 1,
+    0, 0, 1,
 };
 
 static GLfloat posEndData[] = {
-    1, 0, 0,
-    1, 0, 0,
-    -1, 0, 0,
-    -1, 0, 0,
+    0, 0, 1,
+    0, 0, 1,
+    0, 0, -1,
+    0, 0, -1,
 };
 
 static GLfloat offsetData[] = {
@@ -42,7 +42,7 @@ LaserBeam::LaserBeam(ResourceBundle *bundle)
     mUniformMvp = mShader->uniformId("MVP");
 
     mShader->bind();
-    mShader->setUniform(mUniformBeamColor, glm::vec3(0.75f, 0.30f, 0.95f));
+    mShader->setUniform(mUniformBeamColor, glm::vec3(0.63f, 0.50f, 0.98));
 
 
     glGenVertexArrays(1, &mVertexArray);

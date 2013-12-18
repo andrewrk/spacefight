@@ -156,6 +156,9 @@ private:
         float radius() const override {
             return mRadius;
         }
+
+        void correctRotation();
+
     };
 
     std::vector<Bullet> mBullets;

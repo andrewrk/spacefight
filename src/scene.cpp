@@ -212,8 +212,11 @@ void Scene::fireLaser(const glm::vec3 &pos, const glm::vec3 &vel)
     Bullet *bullet = &mBullets[mBullets.size() - 1];
     bullet->drawable.init(mLaserBeam, &m3DRenderContext);
     bullet->drawable.scale = glm::vec3(2);
+    bullet->drawable.anchor = glm::vec3(0, 0, 1);
     bullet->setPos(pos);
     bullet->mVel = vel;
+
+    bullet->correctRotation();
 }
 
 void Scene::setMinFps(float fps)
@@ -267,8 +270,8 @@ static glm::mat4 lookWithoutPosition(const glm::vec3 &eye, const glm::vec3 &cent
     Result[1][2] =-f.y;
     Result[2][2] =-f.z;
 
-    Result[3][0] = 1;
-    Result[3][1] = 1;
+    Result[3][0] = 0;
+    Result[3][1] = 0;
     Result[3][2] = 1;
     return Result;
 }
@@ -387,6 +390,7 @@ void Scene::update(float dt, float dx)
         bullet->setPos(bullet->pos() + bullet->mVel * dx);
 
         maybeBounceObjOffBoundary(bullet);
+        bullet->correctRotation();
         bullet->drawable.update();
     }
 
@@ -549,4 +553,12 @@ void Scene::initJoystick()
     }
 
     SDL_JoystickEventState(SDL_ENABLE);
+}
+
+
+void Scene::Bullet::correctRotation()
+{
+    glm::vec3 forward = glm::normalize(mVel);
+    drawable.pitch = atan2(forward.x, forward.z);
+    drawable.roll = asin(-forward.y);
 }
