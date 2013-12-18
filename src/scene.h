@@ -4,6 +4,7 @@
 
 #include <glm/glm.hpp>
 
+#include "laserbeam.h"
 #include "shader.h"
 #include "drawableinstance.h"
 #include "rendercontext.h"
@@ -125,6 +126,16 @@ private:
 
     std::vector<Asteroid> mAsteroids;
 
+
+    struct Bullet {
+        glm::vec3 pos;
+        glm::vec3 vel;
+    };
+
+    std::vector<Bullet> mBullets;
+    float timeUntilFire = 0;
+    float maxTimeUntilFire = 0.2;
+
     bool cullOn = true;
     bool solidOn = true;
 
@@ -154,6 +165,8 @@ private:
     glm::vec3 mPlayerForward; // direction vector
     ShipPhysicsObject *mPlayerShip;
 
+    LaserBeam *mLaserBeam;
+
     ResourceBundle mBundle;
 
     void flushEvents();
@@ -162,6 +175,7 @@ private:
     void initJoystick();
     void calcCameraPos();
     void maybeBounceObjOffBoundary(PhysicsSphere *obj);
+    void fireLaser(const glm::vec3 &pos, const glm::vec3 &vel);
 };
 
 #endif // SCENE_H

@@ -22,7 +22,8 @@ SOURCES += \
     src/drawableinstance.cpp \
     src/rockgenerator.cpp \
     src/octahedron.cpp \
-    src/boundarysphere.cpp
+    src/boundarysphere.cpp \
+    src/laserbeam.cpp
 
 
 HEADERS += \
@@ -42,7 +43,8 @@ HEADERS += \
     src/rockgenerator.h \
     src/lightblock.h \
     src/octahedron.h \
-    src/boundarysphere.h
+    src/boundarysphere.h \
+    src/laserbeam.h
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += sdl2
@@ -69,5 +71,7 @@ OTHER_FILES += \
     src/shaders/rock.vert \
     src/shaders/rock.frag \
     src/shaders/boundarysphere.vert \
-    src/shaders/boundarysphere.frag
+    src/shaders/boundarysphere.frag \
+    src/shaders/laser.vert \
+    src/shaders/laser.frag
 

@@ -27,6 +27,8 @@ static const float ENGINE_THRUST = 0.001;
 
 static const float FIELD_OF_VIEW = 1.047;
 
+static const float LASER_SPEED = 1;
+
 static const float PI = 3.14159265358979;
 
 static float randFloat() {
@@ -87,6 +89,8 @@ Scene::Scene() :
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    mLaserBeam = new LaserBeam(&mBundle);
 
 
     mArenaRadius = 100.0f;
@@ -202,6 +206,14 @@ void Scene::maybeBounceObjOffBoundary(Scene::PhysicsSphere *obj)
 
 }
 
+void Scene::fireLaser(const glm::vec3 &pos, const glm::vec3 &vel)
+{
+    Bullet bullet;
+    bullet.pos = pos;
+    bullet.vel = vel;
+    mBullets.push_back(bullet);
+}
+
 void Scene::setMinFps(float fps)
 {
     mMaxSpf = 1 / fps;
@@ -284,7 +296,7 @@ static float velToScale(float vel) {
     return vel / 0.1;
 }
 
-void Scene::update(float /* dt */, float dx)
+void Scene::update(float dt, float dx)
 {
     flushEvents();
 
@@ -292,6 +304,7 @@ void Scene::update(float /* dt */, float dx)
     float joyY = 0.0;
     float joyZ = 0.0;
     float joyEngine = 0.0;
+    char joyFire = 0;
     for (unsigned int i = 0; i < mJoysticks.size(); i += 1) {
         SDL_Joystick *joystick = mJoysticks[i];
 
@@ -328,7 +341,15 @@ void Scene::update(float /* dt */, float dx)
     if (state[SDL_SCANCODE_D]) joyZ -= 1.0;
     if (state[SDL_SCANCODE_W]) joyEngine += 1.0;
     if (state[SDL_SCANCODE_S]) joyEngine -= 1.0;
+    if (state[SDL_SCANCODE_SPACE]) joyFire = 1;
 
+    timeUntilFire -= dt;
+    if (timeUntilFire <= 0) {
+        if (joyFire) {
+            timeUntilFire = maxTimeUntilFire;
+            fireLaser(mPlayerShip->mPos, mPlayerShip->mVel + mPlayerForward * LASER_SPEED);
+        }
+    }
 
 
     joyX = clamp(-1.0f, joyX, 1.0f);
@@ -353,12 +374,16 @@ void Scene::update(float /* dt */, float dx)
 
     // player collide with boundary
     maybeBounceObjOffBoundary(mPlayerShip);
-
     calcCameraPos();
 
 
     m3DRenderContext.view = glm::lookAt(mCameraPos, mCameraPos + mPlayerForward, mPlayerUp);
     m3DRenderContext.calcMvpAndNormal();
+
+    for (unsigned int i = 0; i < mBullets.size(); i += 1) {
+        Bullet *bullet = &mBullets[i];
+        bullet->pos += bullet->vel * dx;
+    }
 
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
         Asteroid *asteroid = &mAsteroids[i];
@@ -443,10 +468,19 @@ void Scene::draw()
     mBoundarySphere->draw(m3DRenderContext);
 
 
+
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
         Asteroid *asteroid = &mAsteroids[i];
         asteroid->drawable.draw();
     }
+
+    for (unsigned int i = 0; i < mBullets.size(); i += 1) {
+        Bullet *bullet = &mBullets[i];
+        m3DRenderContext.model = glm::scale(glm::translate(glm::mat4(1), bullet->pos), glm::vec3(2));
+        m3DRenderContext.calcMvpAndNormal();
+        mLaserBeam->draw(m3DRenderContext);
+    }
+
 
     glDisable(GL_DEPTH_TEST);
 
