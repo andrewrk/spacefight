@@ -335,12 +335,45 @@ void Scene::update(float /* dt */, float dx)
 
     mCameraVelocity += mCameraForward * (ENGINE_THRUST * joyEngine * dx);
 
+
+
     m3DRenderContext.view = glm::lookAt(mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
     m3DRenderContext.calcMvpAndNormal();
 
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
         Asteroid *asteroid = &mAsteroids[i];
         asteroid->drawable.pos += asteroid->vel * dx;
+
+        // check for collisions
+        for (unsigned int j = i + 1; j < mAsteroids.size(); j += 1) {
+            Asteroid *other = &mAsteroids[j];
+            glm::vec3 deltaVector = other->drawable.pos - asteroid->drawable.pos;
+            float distanceApart = glm::length(deltaVector);
+            float summedRadii = asteroid->radius() + other->radius();
+            if (distanceApart < summedRadii) {
+                // calculate normal
+                glm::vec3 normal = glm::normalize(deltaVector);
+                // calculate relative velocity
+                glm::vec3 rv = other->vel - asteroid->vel;
+                // relative velocity in terms of the normal direction
+                float velAlongNormal = glm::dot(rv, normal);
+                // do not resolve if velocities are separating
+                if (velAlongNormal <= 0) {
+                    // calculate restitution
+                    float e = MIN(asteroid->collisionDamping, other->collisionDamping);
+                    // calculate impulse scalar
+                    float j = -(1 + e) * velAlongNormal;
+                    j /= 1 / asteroid->mass + 1 / other->mass;
+                    // apply impulse
+                    glm::vec3 impulse = normal * j;
+                    asteroid->vel -= impulse / asteroid->mass;
+                    other->vel += impulse / other->mass;
+                }
+
+                break;
+            }
+        }
+
         asteroid->drawable.update();
     }
 

@@ -49,6 +49,12 @@ private:
     struct Asteroid {
         DrawableInstance drawable;
         glm::vec3 vel;
+        float collisionDamping = 1.0f;
+        float mass = 1.0f;
+
+        float radius() const {
+            return drawable.scale[0];
+        }
     };
 
     std::vector<Asteroid> mAsteroids;
