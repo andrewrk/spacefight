@@ -48,7 +48,10 @@ void BoundarySphere::generate(int rowCount)
 
     // reverse the the winding order so that we can see the inside
     std::vector<GLuint> indexes;
-    indexes.reserve(reverseIndexes.size());
+    indexes.reserve(reverseIndexes.size() + 1);
+    if (reverseIndexes.size() % 2 == 0) {
+        indexes.push_back(reverseIndexes[reverseIndexes.size() - 1]);
+    }
     for (int i = reverseIndexes.size() - 1; i >= 0; i -= 1) {
         indexes.push_back(reverseIndexes[i]);
     }
@@ -101,10 +104,16 @@ void BoundarySphere::draw(const RenderContext &renderContext)
     mShader->setUniform(mShaderNormalMatrix, renderContext.normal);
     mShader->setUniform(texUniformId, 0);
 
+    GLint polygonMode;
+    glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     glBindVertexArray(vertexArrayObject);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
     glDrawElements(GL_TRIANGLE_STRIP, elementCount, GL_UNSIGNED_INT, NULL);
 
+
+    glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
 }
 
 void BoundarySphere::cleanup()

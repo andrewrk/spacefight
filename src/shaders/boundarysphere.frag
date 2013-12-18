@@ -4,7 +4,7 @@ in vec3 EyePosition;
 
 out vec4 FragColor;
 
-const float MAX_DIST = 150.0;
+const float MAX_DIST = 75.0;
 
 void main()
 {

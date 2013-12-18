@@ -89,7 +89,7 @@ Scene::Scene() :
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-    mArenaRadius = 150.0f;
+    mArenaRadius = 100.0f;
     mBoundarySphere = new BoundarySphere(&mBundle);
     mBoundarySphere->generate(20);
 
@@ -162,6 +162,7 @@ Scene::Scene() :
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
         Asteroid *asteroid = &mAsteroids[i];
         asteroid->vel = randDir() * 0.1f;
+        asteroid->vel = randDir() * 0.5f;
         asteroid->drawable.init(&mRockTypes[rand() % mRockTypes.size()], &m3DRenderContext);
         float radius = objMinRadius + objMaxRadius * randFloat();
         asteroid->drawable.pos = randDir() * radius;
@@ -372,6 +373,16 @@ void Scene::update(float /* dt */, float dx)
 
                 break;
             }
+        }
+
+        // check for hitting boundary
+        if (glm::length(asteroid->drawable.pos) + asteroid->radius() >= mArenaRadius) {
+            // need to bounce this asteroid off the edge
+            glm::vec3 normal = glm::normalize(asteroid->drawable.pos);
+            glm::vec3 normVel = glm::normalize(asteroid->vel);
+            float velMagnitude = glm::length(asteroid->vel);
+            asteroid->vel = glm::reflect(normVel, normal) * velMagnitude;
+            asteroid->drawable.pos = normal * (mArenaRadius + asteroid->radius() - 1);
         }
 
         asteroid->drawable.update();
