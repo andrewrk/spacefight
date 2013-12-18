@@ -74,7 +74,7 @@ void RockGenerator::generate(Rock &rock)
         glm::vec3 normal = glm::normalize(points[i]);
         normals.push_back(normal);
 
-        points[i] = (0.8f + randFloat() * 0.4f) * normal;
+        points[i] = (0.9f + randFloat() * 0.2f) * normal;
 
         texCoords.push_back(glm::vec2(
                 0.5 + atan2(normal[2], normal[0]) / (2 * PI),

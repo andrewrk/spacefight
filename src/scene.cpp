@@ -93,10 +93,10 @@ Scene::Scene() :
     mBoundarySphere = new BoundarySphere(&mBundle);
     mBoundarySphere->generate(20);
 
-    mCameraForward = glm::vec3(0, -1.0, 0);
-    mCameraUp = glm::vec3(0, 0, 1);
-    mCameraPosition = glm::vec3(0, 0, 0);
-    mCameraVelocity = glm::vec3(0, 0, 0);
+    mPlayerShip = new ShipPhysicsObject(3.0f);
+    mPlayerForward = glm::vec3(0, -1.0, 0);
+    mPlayerUp = glm::vec3(0, 0, 1);
+    calcCameraPos();
 
     m3DRenderContext.projection = glm::perspective(FIELD_OF_VIEW,
         mScreenWidth / (float)mScreenHeight, 0.1f, mArenaRadius * 2 + 10.0f);
@@ -161,8 +161,7 @@ Scene::Scene() :
     const float objMinRadius = 30.0f;
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
         Asteroid *asteroid = &mAsteroids[i];
-        asteroid->vel = randDir() * 0.1f;
-        asteroid->vel = randDir() * 0.5f;
+        asteroid->setVel(randDir() * 0.1f);
         asteroid->drawable.init(&mRockTypes[rand() % mRockTypes.size()], &m3DRenderContext);
         float radius = objMinRadius + objMaxRadius * randFloat();
         asteroid->drawable.pos = randDir() * radius;
@@ -184,6 +183,23 @@ Scene::~Scene()
 
     SDL_GL_DeleteContext(mContext);
     SDL_DestroyWindow(mWindow);
+}
+
+void Scene::calcCameraPos()
+{
+    mCameraPos = mPlayerShip->pos() + mPlayerForward * mPlayerShip->radius();
+}
+
+void Scene::maybeBounceObjOffBoundary(Scene::PhysicsSphere *obj)
+{
+    if (glm::length(obj->pos()) + obj->radius() >= mArenaRadius) {
+        glm::vec3 normal = glm::normalize(obj->pos());
+        glm::vec3 normVel = glm::normalize(obj->vel());
+        float velMagnitude = glm::length(obj->vel());
+        obj->setVel(glm::reflect(normVel, -normal) * velMagnitude);
+        obj->setPos(normal * (mArenaRadius - obj->radius() - 1));
+    }
+
 }
 
 void Scene::setMinFps(float fps)
@@ -322,28 +338,31 @@ void Scene::update(float /* dt */, float dx)
 
     // x^3 gives us a nice joystick response curve
     float deltaAngle = -joyX * joyX * joyX * CAMERA_ROTATION_SPEED * dx;
-    mCameraForward = glm::rotate(mCameraForward, deltaAngle, mCameraUp);
-    glm::vec3 leftVector = glm::cross(mCameraForward, mCameraUp);
+    mPlayerForward = glm::rotate(mPlayerForward, deltaAngle, mPlayerUp);
+    glm::vec3 leftVector = glm::cross(mPlayerForward, mPlayerUp);
 
     deltaAngle = joyY * joyY * joyY * CAMERA_ROTATION_SPEED * dx;
-    mCameraForward = glm::rotate(mCameraForward, deltaAngle, leftVector);
-    mCameraUp = glm::cross(leftVector, mCameraForward);
+    mPlayerForward = glm::rotate(mPlayerForward, deltaAngle, leftVector);
+    mPlayerUp = glm::cross(leftVector, mPlayerForward);
 
     deltaAngle = joyZ * joyZ * joyZ * CAMERA_ROTATION_SPEED * dx;
-    mCameraUp = glm::rotate(mCameraUp, deltaAngle, mCameraForward);
+    mPlayerUp = glm::rotate(mPlayerUp, deltaAngle, mPlayerForward);
 
-    mCameraPosition += mCameraVelocity * dx;
+    mPlayerShip->mPos += mPlayerShip->mVel * dx;
+    mPlayerShip->mVel += mPlayerForward * (ENGINE_THRUST * joyEngine * dx);
 
-    mCameraVelocity += mCameraForward * (ENGINE_THRUST * joyEngine * dx);
+    // player collide with boundary
+    maybeBounceObjOffBoundary(mPlayerShip);
+
+    calcCameraPos();
 
 
-
-    m3DRenderContext.view = glm::lookAt(mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
+    m3DRenderContext.view = glm::lookAt(mCameraPos, mCameraPos + mPlayerForward, mPlayerUp);
     m3DRenderContext.calcMvpAndNormal();
 
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
         Asteroid *asteroid = &mAsteroids[i];
-        asteroid->drawable.pos += asteroid->vel * dx;
+        asteroid->drawable.pos += asteroid->mVel * dx;
 
         // check for collisions
         for (unsigned int j = i + 1; j < mAsteroids.size(); j += 1) {
@@ -355,7 +374,7 @@ void Scene::update(float /* dt */, float dx)
                 // calculate normal
                 glm::vec3 normal = glm::normalize(deltaVector);
                 // calculate relative velocity
-                glm::vec3 rv = other->vel - asteroid->vel;
+                glm::vec3 rv = other->mVel - asteroid->mVel;
                 // relative velocity in terms of the normal direction
                 float velAlongNormal = glm::dot(rv, normal);
                 // do not resolve if velocities are separating
@@ -367,8 +386,8 @@ void Scene::update(float /* dt */, float dx)
                     j /= 1 / asteroid->mass + 1 / other->mass;
                     // apply impulse
                     glm::vec3 impulse = normal * j;
-                    asteroid->vel -= impulse / asteroid->mass;
-                    other->vel += impulse / other->mass;
+                    asteroid->mVel -= impulse / asteroid->mass;
+                    other->mVel += impulse / other->mass;
                 }
 
                 break;
@@ -376,26 +395,19 @@ void Scene::update(float /* dt */, float dx)
         }
 
         // check for hitting boundary
-        if (glm::length(asteroid->drawable.pos) + asteroid->radius() >= mArenaRadius) {
-            // need to bounce this asteroid off the edge
-            glm::vec3 normal = glm::normalize(asteroid->drawable.pos);
-            glm::vec3 normVel = glm::normalize(asteroid->vel);
-            float velMagnitude = glm::length(asteroid->vel);
-            asteroid->vel = glm::reflect(normVel, normal) * velMagnitude;
-            asteroid->drawable.pos = normal * (mArenaRadius + asteroid->radius() - 1);
-        }
+        maybeBounceObjOffBoundary(asteroid);
 
         asteroid->drawable.update();
     }
 
-    mSkyBoxRenderContext.view = lookWithoutPosition(mCameraPosition, mCameraPosition + mCameraForward, mCameraUp);
+    mSkyBoxRenderContext.view = lookWithoutPosition(mCameraPos, mCameraPos + mPlayerForward, mPlayerUp);
     mSkyBoxRenderContext.calcMvpAndNormal();
 
     // calculate the magnitude and direction of velocity in the direction other than forward or backward
     // convert velocity vector from absolute coordinates into coordinate system relative to ship orientation
     // then we can simply take 2 of the 3 components.
-    glm::mat3 theMatrix = changeBasisMatrix(mCameraForward, mCameraUp);
-    glm::vec3 relVel = theMatrix * mCameraVelocity;
+    glm::mat3 theMatrix = changeBasisMatrix(mPlayerForward, mPlayerUp);
+    glm::vec3 relVel = theMatrix * mPlayerShip->mVel;
     glm::vec2 relVel2D(relVel[0], relVel[1]);
     float forwardVel = -relVel[2];
     float relVelMagnitude = glm::length(relVel2D);
