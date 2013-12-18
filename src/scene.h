@@ -49,10 +49,10 @@ private:
 
     class PhysicsSphere {
     public:
-        PhysicsSphere(float mass, float collisionDamping) :
-            mass(mass),
+        PhysicsSphere(float density, float collisionDamping) :
+            density(density),
             collisionDamping(collisionDamping) {}
-        float mass = 1.0f;
+        float density = 1.0f;
         float collisionDamping = 1.0f;
 
         virtual glm::vec3 vel() const = 0;
@@ -61,7 +61,12 @@ private:
         virtual glm::vec3 pos() const = 0;
         virtual void setPos(const glm::vec3 &value) = 0;
 
+
         virtual float radius() const = 0;
+
+        virtual float mass() const;
+
+        bool collidingWith(const PhysicsSphere *other);
     };
 
     class Asteroid : public PhysicsSphere {
@@ -69,6 +74,7 @@ private:
         Asteroid() : PhysicsSphere(1.0f, 1.0f) {}
         DrawableInstance drawable;
         glm::vec3 mVel;
+        float mHp = 1.0f;
 
         glm::vec3 vel() const override {
             return mVel;
@@ -94,7 +100,7 @@ private:
     class ShipPhysicsObject : public PhysicsSphere {
     public:
         ShipPhysicsObject(float radius) :
-            PhysicsSphere(0.1f, 1.0f),
+            PhysicsSphere(1.0f, 1.0f),
             mVel(0),
             mPos(0),
             mRadius(radius) {}
@@ -136,6 +142,8 @@ private:
         DrawableInstance drawable;
         glm::vec3 mVel;
         float mRadius;
+        // when this gets to 0 the bullet is cleaned up
+        float mLife;
 
         glm::vec3 vel() const override {
             return mVel;
@@ -157,6 +165,7 @@ private:
             return mRadius;
         }
 
+
         void correctRotation();
 
     };
@@ -164,6 +173,11 @@ private:
     std::vector<Bullet> mBullets;
     float timeUntilFire = 0;
     float maxTimeUntilFire = 0.2;
+    float maxBulletLife = 1.5f;
+
+    float maxAsteroidRadius = 16;
+    float minAsteroidRadius = 4;
+    float asteroidStartSpeed = 0.05f;
 
     bool cullOn = true;
     bool solidOn = true;
@@ -205,6 +219,14 @@ private:
     void calcCameraPos();
     void maybeBounceObjOffBoundary(PhysicsSphere *obj);
     void fireLaser(const glm::vec3 &pos, const glm::vec3 &vel);
+    void loseTheGame();
+    void checkVictoryConditions();
+    void explodeAsteroid(Asteroid *asteroid);
+    void spawnNewAsteroid(const glm::vec3 &pos, const glm::vec3 &vel, float radius);
+
+
+    Bullet *getNewBullet();
+    Asteroid *getNewAsteroid();
 };
 
 #endif // SCENE_H

@@ -23,11 +23,11 @@ static const float TARGET_SPF = 1.0 / TARGET_FPS;
 static const float FPS_SMOOTHNESS = 0.9;
 static const float FPS_ONE_FRAME_WEIGHT = 1.0 - FPS_SMOOTHNESS;
 
-static const float ENGINE_THRUST = 0.001;
+static const float ENGINE_THRUST = 0.006;
 
 static const float FIELD_OF_VIEW = 1.047;
 
-static const float LASER_SPEED = 1;
+static const float LASER_SPEED = 2;
 
 static const float PI = 3.14159265358979;
 
@@ -160,19 +160,14 @@ Scene::Scene() :
         Rock *rockType = &mRockTypes[i];
         mRockGenerator->generate(*rockType);
     }
-    mAsteroids.resize(4);
+
     const float objMaxRadius = 70.0f;
     const float objMinRadius = 30.0f;
-    for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
-        Asteroid *asteroid = &mAsteroids[i];
-        asteroid->setVel(randDir() * 0.1f);
-        asteroid->drawable.init(&mRockTypes[rand() % mRockTypes.size()], &m3DRenderContext);
-        float radius = objMinRadius + objMaxRadius * randFloat();
-        asteroid->drawable.pos = randDir() * radius;
-        asteroid->drawable.scale = glm::vec3(15.0f, 15.0f, 15.0f);
-        asteroid->drawable.update();
-    }
 
+    for (int i = 0; i < 4; i += 1) {
+        float radius = objMinRadius + objMaxRadius * randFloat();
+        spawnNewAsteroid(randDir() * radius, randDir() * asteroidStartSpeed, maxAsteroidRadius);
+    }
     initJoystick();
 
     setMinFps(20);
@@ -206,17 +201,78 @@ void Scene::maybeBounceObjOffBoundary(Scene::PhysicsSphere *obj)
 
 }
 
+Scene::Bullet *Scene::getNewBullet() {
+    for (unsigned int i = 0; i < mBullets.size(); i += 1) {
+        Bullet *bullet = &mBullets[i];
+        if (bullet->mLife <= 0) return bullet;
+    }
+
+    mBullets.resize(mBullets.size() + 1);
+    return &mBullets[mBullets.size() - 1];
+}
+
+Scene::Asteroid *Scene::getNewAsteroid()
+{
+    for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
+        Asteroid *asteroid = &mAsteroids[i];
+        if (asteroid->mHp <= 0) return asteroid;
+    }
+
+    mAsteroids.resize(mAsteroids.size() + 1);
+    return &mAsteroids[mAsteroids.size() - 1];
+}
+
 void Scene::fireLaser(const glm::vec3 &pos, const glm::vec3 &vel)
 {
-    mBullets.resize(mBullets.size() + 1);
-    Bullet *bullet = &mBullets[mBullets.size() - 1];
+    Bullet *bullet = getNewBullet();
+
     bullet->drawable.init(mLaserBeam, &m3DRenderContext);
     bullet->drawable.scale = glm::vec3(2);
     bullet->drawable.anchor = glm::vec3(0, 0, 1);
     bullet->setPos(pos);
     bullet->mVel = vel;
-
+    bullet->mLife = maxBulletLife;
     bullet->correctRotation();
+}
+
+void Scene::loseTheGame()
+{
+    std::cout << "you lose\n";
+}
+
+void Scene::checkVictoryConditions()
+{
+    for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
+        Asteroid *asteroid = &mAsteroids[i];
+        if (asteroid->mHp > 0) return;
+    }
+    std::cout << "you win\n";
+}
+
+void Scene::explodeAsteroid(Asteroid *asteroid)
+{
+    asteroid->mHp = 0;
+    float newRadius = asteroid->radius() / 2;
+    if (newRadius < minAsteroidRadius) {
+        checkVictoryConditions();
+        return;
+    }
+
+    for (int i = 0; i < 2; i += 1) {
+        glm::vec3 newVel = (glm::length(asteroid->vel()) * 2.0f) * randDir();
+        spawnNewAsteroid(asteroid->pos(), newVel, newRadius);
+    }
+}
+
+void Scene::spawnNewAsteroid(const glm::vec3 &pos, const glm::vec3 &vel, float radius)
+{
+    Asteroid *asteroid = getNewAsteroid();
+    asteroid->drawable.init(&mRockTypes[rand() % mRockTypes.size()], &m3DRenderContext);
+    asteroid->drawable.scale = glm::vec3(radius);
+    asteroid->setPos(pos);
+    asteroid->setVel(vel);
+    asteroid->mHp = 1.0f;
+    asteroid->drawable.update();
 }
 
 void Scene::setMinFps(float fps)
@@ -298,7 +354,7 @@ static glm::mat3 changeBasisMatrix(const glm::vec3 &forward, const glm::vec3 &up
 }
 
 static float velToScale(float vel) {
-    return vel / 0.1;
+    return vel / 0.3;
 }
 
 void Scene::update(float dt, float dx)
@@ -387,7 +443,20 @@ void Scene::update(float dt, float dx)
 
     for (unsigned int i = 0; i < mBullets.size(); i += 1) {
         Bullet *bullet = &mBullets[i];
+        if (bullet->mLife <= 0) continue;
+
         bullet->setPos(bullet->pos() + bullet->mVel * dx);
+        bullet->mLife -= dt;
+        if (bullet->mLife <= 0) continue;
+
+        for (unsigned int j = 0; j < mAsteroids.size(); j += 1) {
+            Asteroid *asteroid = &mAsteroids[j];
+            if (asteroid->mHp <= 0) continue;
+            if (asteroid->collidingWith(bullet)) {
+                bullet->mLife = 0;
+                explodeAsteroid(asteroid);
+            }
+        }
 
         maybeBounceObjOffBoundary(bullet);
         bullet->correctRotation();
@@ -396,11 +465,18 @@ void Scene::update(float dt, float dx)
 
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
         Asteroid *asteroid = &mAsteroids[i];
+        if (asteroid->mHp <= 0) continue;
         asteroid->drawable.pos += asteroid->mVel * dx;
+
+        if (asteroid->collidingWith(mPlayerShip)) {
+            loseTheGame();
+            break;
+        }
 
         // check for collisions
         for (unsigned int j = i + 1; j < mAsteroids.size(); j += 1) {
             Asteroid *other = &mAsteroids[j];
+            if (other->mHp <= 0) continue;
             glm::vec3 deltaVector = other->drawable.pos - asteroid->drawable.pos;
             float distanceApart = glm::length(deltaVector);
             float summedRadii = asteroid->radius() + other->radius();
@@ -417,11 +493,11 @@ void Scene::update(float dt, float dx)
                     float e = MIN(asteroid->collisionDamping, other->collisionDamping);
                     // calculate impulse scalar
                     float j = -(1 + e) * velAlongNormal;
-                    j /= 1 / asteroid->mass + 1 / other->mass;
+                    j /= 1 / asteroid->mass() + 1 / other->mass();
                     // apply impulse
                     glm::vec3 impulse = normal * j;
-                    asteroid->mVel -= impulse / asteroid->mass;
-                    other->mVel += impulse / other->mass;
+                    asteroid->mVel -= impulse / asteroid->mass();
+                    other->mVel += impulse / other->mass();
                 }
 
                 break;
@@ -480,11 +556,13 @@ void Scene::draw()
 
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
         Asteroid *asteroid = &mAsteroids[i];
+        if (asteroid->mHp <= 0) continue;
         asteroid->drawable.draw();
     }
 
     for (unsigned int i = 0; i < mBullets.size(); i += 1) {
         Bullet *bullet = &mBullets[i];
+        if (bullet->mLife <= 0) continue;
         bullet->drawable.draw();
     }
 
@@ -561,4 +639,16 @@ void Scene::Bullet::correctRotation()
     glm::vec3 forward = glm::normalize(mVel);
     drawable.pitch = atan2(forward.x, forward.z);
     drawable.roll = asin(-forward.y);
+}
+
+
+float Scene::PhysicsSphere::mass() const
+{
+    float r = radius();
+    return density * r * r * PI;
+}
+
+bool Scene::PhysicsSphere::collidingWith(const Scene::PhysicsSphere *other)
+{
+    return glm::distance(this->pos(), other->pos()) < this->radius() + other->radius();
 }
