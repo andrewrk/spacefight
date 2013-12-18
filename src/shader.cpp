@@ -88,6 +88,11 @@ void Shader::setUniform(GLuint uniformId, int value)
     glUniform1i(uniformId, value);
 }
 
+void Shader::setUniform(GLuint uniformId, float value)
+{
+    glUniform1f(uniformId, value);
+}
+
 void Shader::setUniform(GLuint uniformId, const glm::vec3 &value)
 {
     glUniform3fv(uniformId, 1, &value[0]);

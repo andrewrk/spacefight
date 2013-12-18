@@ -20,6 +20,7 @@ public:
 
     GLuint uniformId(const std::string &name);
     void setUniform(GLuint uniformId, int value);
+    void setUniform(GLuint uniformId, float value);
     void setUniform(GLuint uniformId, const glm::vec3 &value);
     void setUniform(GLuint uniformId, const glm::vec4 &value);
     void setUniform(GLuint uniformId, const glm::mat4 &value);

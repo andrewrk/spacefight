@@ -3,9 +3,10 @@
 
 #include "rendercontext.h"
 #include "shader.h"
+#include "drawable.h"
 class ResourceBundle;
 
-class LaserBeam
+class LaserBeam : public Drawable
 {
 public:
     LaserBeam(ResourceBundle *bundle);
@@ -17,14 +18,19 @@ private:
 
     Shader *mShader;
 
-    GLint mAttribVertexPosition;
+    GLint mAttribPosStart;
+    GLint mAttribPosEnd;
+    GLint mAttribOffset;
+
     GLint mUniformBeamColor;
     GLint mUniformMvp;
 
     int mPointCount;
 
     GLuint mVertexArray;
-    GLuint mVertexBuffer;
+    GLuint mPosStartBuffer;
+    GLuint mPosEndBuffer;
+    GLuint mOffsetBuffer;
 
 
 

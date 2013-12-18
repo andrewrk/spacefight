@@ -127,9 +127,35 @@ private:
     std::vector<Asteroid> mAsteroids;
 
 
-    struct Bullet {
-        glm::vec3 pos;
-        glm::vec3 vel;
+    class Bullet : public PhysicsSphere {
+    public:
+        Bullet() :
+            PhysicsSphere(0.1f, 1.0f),
+            mVel(0),
+            mRadius(0.02) {}
+        DrawableInstance drawable;
+        glm::vec3 mVel;
+        float mRadius;
+
+        glm::vec3 vel() const override {
+            return mVel;
+        }
+
+        void setVel(const glm::vec3 &value) override {
+            mVel = value;
+        }
+
+        glm::vec3 pos() const override {
+            return drawable.pos;
+        }
+
+        void setPos(const glm::vec3 &value) override {
+            drawable.pos = value;
+        }
+
+        float radius() const override {
+            return mRadius;
+        }
     };
 
     std::vector<Bullet> mBullets;

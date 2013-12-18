@@ -208,10 +208,12 @@ void Scene::maybeBounceObjOffBoundary(Scene::PhysicsSphere *obj)
 
 void Scene::fireLaser(const glm::vec3 &pos, const glm::vec3 &vel)
 {
-    Bullet bullet;
-    bullet.pos = pos;
-    bullet.vel = vel;
-    mBullets.push_back(bullet);
+    mBullets.resize(mBullets.size() + 1);
+    Bullet *bullet = &mBullets[mBullets.size() - 1];
+    bullet->drawable.init(mLaserBeam, &m3DRenderContext);
+    bullet->drawable.scale = glm::vec3(2);
+    bullet->setPos(pos);
+    bullet->mVel = vel;
 }
 
 void Scene::setMinFps(float fps)
@@ -382,7 +384,10 @@ void Scene::update(float dt, float dx)
 
     for (unsigned int i = 0; i < mBullets.size(); i += 1) {
         Bullet *bullet = &mBullets[i];
-        bullet->pos += bullet->vel * dx;
+        bullet->setPos(bullet->pos() + bullet->mVel * dx);
+
+        maybeBounceObjOffBoundary(bullet);
+        bullet->drawable.update();
     }
 
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
@@ -476,9 +481,7 @@ void Scene::draw()
 
     for (unsigned int i = 0; i < mBullets.size(); i += 1) {
         Bullet *bullet = &mBullets[i];
-        m3DRenderContext.model = glm::scale(glm::translate(glm::mat4(1), bullet->pos), glm::vec3(2));
-        m3DRenderContext.calcMvpAndNormal();
-        mLaserBeam->draw(m3DRenderContext);
+        bullet->drawable.draw();
     }
 
 
