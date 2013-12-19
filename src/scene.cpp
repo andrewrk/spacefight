@@ -391,6 +391,8 @@ void Scene::update(float dt, float dx)
         val = SDL_JoystickGetAxis(joystick, 2);
         joyZ += (float) val / (float) INT16_MAX;
 
+        joyFire = SDL_JoystickGetButton(joystick, 0);
+
         Uint8 hatVal = SDL_JoystickGetHat(joystick, 0);
 
         if ((hatVal&SDL_HAT_UP) ||
@@ -595,11 +597,13 @@ void Scene::draw()
         if (asteroid->mHp <= 0) continue;
 
         glm::vec3 toAsteroid = glm::normalize(asteroid->pos() - mCameraPos);
-        float x = -glm::dot(leftVector, toAsteroid) * mFrontRadarOutline->scaleWidth() / 2.0f;
-        float y = glm::dot(mPlayerUp, toAsteroid) * mFrontRadarOutline->scaleHeight() / 2.0f;
+        float x = glm::dot(leftVector, toAsteroid);
+        float y = -glm::dot(mPlayerUp, toAsteroid);
         float forward = glm::dot(mPlayerForward, toAsteroid);
         glm::vec3 center = (forward > 0) ? mFrontRadarOutline->pos : mRearRadarOutline->pos;
-        m2DRenderContext.model = glm::translate(glm::mat4(1.0), center + glm::vec3(x, y, 0));
+        glm::vec3 offset = glm::vec3(x * mFrontRadarOutline->scaleWidth() / 2.0f,
+                                     y * mFrontRadarOutline->scaleHeight() / 2.0f,0);
+        m2DRenderContext.model = glm::translate(glm::mat4(1.0), center + offset);
         m2DRenderContext.calcMvp();
         mCockpitSpritesheet.draw(mRadarAsteroidImage, m2DRenderContext);
     }
