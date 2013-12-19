@@ -26,6 +26,10 @@
           path: "assets/img/radar-circle.png",
           anchor: "center",
         },
+        radarItem: {
+          path: "assets/img/radar-item.png",
+          anchor: "center",
+        },
         crosshair: {
           path: "assets/img/crosshair.png",
           anchor: "center",

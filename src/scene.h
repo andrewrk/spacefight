@@ -198,6 +198,10 @@ private:
     Sprite *mCrossHair;
     Sprite *mForwardVelArrow;
 
+    Sprite *mFrontRadarOutline;
+    Sprite *mRearRadarOutline;
+    const SpriteSheet::ImageInfo *mRadarAsteroidImage;
+
     float mArenaRadius;
     BoundarySphere *mBoundarySphere;
 

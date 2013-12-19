@@ -138,6 +138,19 @@ Scene::Scene() :
     mVelDisplayOutline->pos.y = mScreenHeight - mVelDisplayOutline->scaleHeight() / 2;
     mVelDisplayOutline->update();
 
+    mFrontRadarOutline = new Sprite(mCockpitSpritesheet, "radarCircle", m2DRenderContext);
+    mFrontRadarOutline->pos.x = mFrontRadarOutline->scaleWidth() / 2;
+    mFrontRadarOutline->pos.y = mFrontRadarOutline->scaleHeight() / 2;
+    mFrontRadarOutline->update();
+
+    mRearRadarOutline = new Sprite(mCockpitSpritesheet, "radarCircle", m2DRenderContext);
+    mRearRadarOutline->pos.x = mScreenWidth - mFrontRadarOutline->scaleWidth() / 2;
+    mRearRadarOutline->pos.y = mFrontRadarOutline->scaleHeight() / 2;
+    mRearRadarOutline->update();
+
+    mRadarAsteroidImage = mCockpitSpritesheet.getImageInfo("radarItem");
+
+
     mVelDisplayArrow = new Sprite(mCockpitSpritesheet, "arrow", m2DRenderContext);
     mVelDisplayArrow->pos = mVelDisplayOutline->pos;
     mVelDisplayArrow->update();
@@ -552,8 +565,6 @@ void Scene::draw()
     m3DRenderContext.calcMvpAndNormal();
     mBoundarySphere->draw(m3DRenderContext);
 
-
-
     for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
         Asteroid *asteroid = &mAsteroids[i];
         if (asteroid->mHp <= 0) continue;
@@ -573,6 +584,25 @@ void Scene::draw()
     mVelDisplayOutline->draw();
     mVelDisplayArrow->draw();
     mForwardVelArrow->draw();
+
+    mFrontRadarOutline->draw();
+    mRearRadarOutline->draw();
+
+    // asteroids on radars
+    glm::vec3 leftVector = glm::cross(mPlayerForward, mPlayerUp);
+    for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
+        Asteroid *asteroid = &mAsteroids[i];
+        if (asteroid->mHp <= 0) continue;
+
+        glm::vec3 toAsteroid = glm::normalize(asteroid->pos() - mCameraPos);
+        float x = -glm::dot(leftVector, toAsteroid) * mFrontRadarOutline->scaleWidth() / 2.0f;
+        float y = glm::dot(mPlayerUp, toAsteroid) * mFrontRadarOutline->scaleHeight() / 2.0f;
+        float forward = glm::dot(mPlayerForward, toAsteroid);
+        glm::vec3 center = (forward > 0) ? mFrontRadarOutline->pos : mRearRadarOutline->pos;
+        m2DRenderContext.model = glm::translate(glm::mat4(1.0), center + glm::vec3(x, y, 0));
+        m2DRenderContext.calcMvp();
+        mCockpitSpritesheet.draw(mRadarAsteroidImage, m2DRenderContext);
+    }
 
     m2DRenderContext.model = glm::translate(glm::mat4(1.0), glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
     m2DRenderContext.calcMvp();
