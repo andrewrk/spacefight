@@ -7,7 +7,7 @@ uniform vec3 BeamColor;
 
 void main()
 {
-    FragColor = vec4(BeamColor, FragOffset);
+    FragColor = vec4(mix(vec3(1, 1, 1), BeamColor, FragOffset), FragOffset);
 
 }
 
