@@ -127,6 +127,10 @@ Scene::Scene() :
     mFpsLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     mFpsLabel->setFontFace("Sans 12");
 
+    mHeadingLabel = mLabelFactory->newLabel();
+    mHeadingLabel->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    mHeadingLabel->setFontFace("Sans 12");
+
     m2DRenderContext.projection = glm::ortho(0.0f, (float)mScreenWidth,
         (float)mScreenHeight, 0.0f);
     m2DRenderContext.view = glm::mat4(1.0);
@@ -241,7 +245,7 @@ void Scene::fireLaser(const glm::vec3 &pos, const glm::vec3 &vel)
 
     bullet->drawable.init(mLaserBeam, &m3DRenderContext);
     bullet->drawable.scale = glm::vec3(2);
-    bullet->drawable.anchor = glm::vec3(0, 0, 1);
+    bullet->drawable.anchor = glm::vec3(1, 0, 0);
     bullet->setPos(pos);
     bullet->mVel = vel;
     bullet->mLife = maxBulletLife;
@@ -339,9 +343,6 @@ static glm::mat4 lookWithoutPosition(const glm::vec3 &eye, const glm::vec3 &cent
     Result[1][2] =-f.y;
     Result[2][2] =-f.z;
 
-    Result[3][0] = 0;
-    Result[3][1] = 0;
-    Result[3][2] = 1;
     return Result;
 }
 
@@ -552,6 +553,11 @@ void Scene::update(float dt, float dx)
     mFpsLabel->setText(ss.str());
     mFpsLabel->update();
 
+    ss.str("");
+    ss << "x: " << mPlayerForward.x << " y: " << mPlayerForward.y << " z: " << mPlayerForward.z;
+    mHeadingLabel->setText(ss.str());
+    mHeadingLabel->update();
+
 }
 
 void Scene::draw()
@@ -611,6 +617,12 @@ void Scene::draw()
     m2DRenderContext.model = glm::translate(glm::mat4(1.0), glm::vec3(0, mScreenHeight - mFpsLabel->mHeight, 0));
     m2DRenderContext.calcMvp();
     mFpsLabel->draw(m2DRenderContext);
+
+    m2DRenderContext.model = glm::translate(glm::mat4(1.0), glm::vec3(0, mScreenHeight - mFpsLabel->mHeight - mHeadingLabel->mHeight - 4, 0));
+    m2DRenderContext.calcMvp();
+    mHeadingLabel->draw(m2DRenderContext);
+
+
 }
 
 void Scene::flushEvents() {
@@ -671,8 +683,13 @@ void Scene::initJoystick()
 void Scene::Bullet::correctRotation()
 {
     glm::vec3 forward = glm::normalize(mVel);
-    drawable.pitch = atan2(forward.x, forward.z);
-    drawable.roll = asin(-forward.y);
+
+    glm::vec3 modelUnit(1.0f, 0.0f, 0.0f);
+    float dot = glm::dot(forward, modelUnit);
+    glm::vec3 axis = glm::cross(forward, modelUnit);
+
+    drawable.rot = glm::rotate(glm::mat4(1), acosf(dot), -axis);
+
 }
 
 

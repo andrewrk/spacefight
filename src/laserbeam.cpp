@@ -11,17 +11,17 @@ struct LineInfo {
 };
 
 static GLfloat posStartData[] = {
-    0, 0, -1,
-    0, 0, -1,
-    0, 0, 1,
-    0, 0, 1,
+    -1, 0, 0,
+    -1, 0, 0,
+    1, 0, 0,
+    1, 0, 0,
 };
 
 static GLfloat posEndData[] = {
-    0, 0, 1,
-    0, 0, 1,
-    0, 0, -1,
-    0, 0, -1,
+    1, 0, 0,
+    1, 0, 0,
+    -1, 0, 0,
+    -1, 0, 0,
 };
 
 static GLfloat offsetData[] = {

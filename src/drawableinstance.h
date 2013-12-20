@@ -14,9 +14,7 @@ public:
 
     glm::vec3 pos;
     glm::vec3 scale;
-    float roll;
-    float pitch;
-    float yaw;
+    glm::mat4 rot;
     glm::vec3 anchor;
 
     void init(const Drawable *drawable, RenderContext *renderContext);

@@ -6,9 +6,7 @@
 DrawableInstance::DrawableInstance(const Drawable *drawable, RenderContext *renderContext) :
     pos(0),
     scale(1),
-    roll(0),
-    pitch(0),
-    yaw(0),
+    rot(1),
     anchor(0, 0, 0),
     mModelMatrix(1)
 {
@@ -31,9 +29,7 @@ void DrawableInstance::update()
     mModelMatrix = glm::mat4(1);
     mModelMatrix = glm::translate(mModelMatrix, pos);
     mModelMatrix = glm::scale(mModelMatrix, scale);
-    mModelMatrix = glm::rotate(mModelMatrix, roll, glm::vec3(1, 0, 0));
-    mModelMatrix = glm::rotate(mModelMatrix, pitch, glm::vec3(0, 1, 0));
-    mModelMatrix = glm::rotate(mModelMatrix, yaw, glm::vec3(0, 0, 1));
+    mModelMatrix *= rot;
     mModelMatrix = glm::translate(mModelMatrix, -anchor);
 }
 

@@ -192,6 +192,8 @@ private:
     float mFps;
     Label *mFpsLabel;
 
+    Label *mHeadingLabel;
+
     SpriteSheet mCockpitSpritesheet;
     Sprite *mVelDisplayOutline;
     Sprite *mVelDisplayArrow;
