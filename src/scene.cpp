@@ -36,7 +36,7 @@ static float randFloat() {
 }
 
 static glm::vec3 randDir() {
-    return glm::normalize(glm::vec3(randFloat(), randFloat(), randFloat()));
+    return glm::normalize(glm::vec3(randFloat() - 0.5f, randFloat() - 0.5f, randFloat() - 0.5f));
 }
 
 Scene::Scene() :
@@ -170,6 +170,11 @@ Scene::Scene() :
     mCrossHair->pos.y = mScreenHeight / 2.0f;
     mCrossHair->update();
 
+    mCrossHairHit = new Sprite(mCockpitSpritesheet, "crosshairHit", m2DRenderContext);
+    mCrossHairHit->pos = mCrossHair->pos;
+    mCrossHairHit->visible = false;
+    mCrossHairHit->update();
+
     mRockGenerator = new RockGenerator(&mBundle);
 
     mRockTypes.resize(50);
@@ -178,8 +183,8 @@ Scene::Scene() :
         mRockGenerator->generate(*rockType);
     }
 
-    const float objMaxRadius = 70.0f;
-    const float objMinRadius = 30.0f;
+    const float objMaxRadius = 0.40f * mArenaRadius;
+    const float objMinRadius = 0.30f * mArenaRadius;
 
     for (int i = 0; i < 4; i += 1) {
         float radius = objMinRadius + objMaxRadius * randFloat();
@@ -225,7 +230,9 @@ Scene::Bullet *Scene::getNewBullet() {
     }
 
     mBullets.resize(mBullets.size() + 1);
-    return &mBullets[mBullets.size() - 1];
+    Bullet *bullet = &mBullets[mBullets.size() - 1];
+    bullet->mRadius = bulletRadius;
+    return bullet;
 }
 
 Scene::Asteroid *Scene::getNewAsteroid()
@@ -457,6 +464,29 @@ void Scene::update(float dt, float dx)
     m3DRenderContext.view = glm::lookAt(mCameraPos, mCameraPos + mPlayerForward, mPlayerUp);
     m3DRenderContext.calcMvpAndNormal();
 
+    // figure out whether to display the crosshair indication that shooting will hit a target
+    bool goodShot = false;
+    for (unsigned int i = 0; i < mAsteroids.size(); i += 1) {
+        Asteroid *asteroid = &mAsteroids[i];
+        if (asteroid->mHp <= 0) continue;
+        // find the intersection between the asteroid's trajectory and the potential bullet's trajectory
+        glm::vec3 toAsteroid = asteroid->pos() - mCameraPos;
+        glm::vec3 toAsteroidUnit = glm::normalize(toAsteroid);
+        // find the speed of the laser in the direction of toAsteroid
+        float speedFromShipVel = glm::dot(toAsteroidUnit, mPlayerForward) * glm::length(mPlayerShip->vel());
+        float speedOfFiredLaser = LASER_SPEED + speedFromShipVel;
+        // calculate the time a direct shot at the asteroid would take to get there
+        float timeUntilHit = glm::length(toAsteroid) / speedOfFiredLaser;
+        // calculate where the asteroid would be by that time
+        glm::vec3 newAsteroidPos = asteroid->pos() + asteroid->vel() * timeUntilHit;
+        // calculate where a fired laser would be by that time
+        glm::vec3 potentialLaserPos = mPlayerShip->pos() + mPlayerForward * speedOfFiredLaser * timeUntilHit;
+        // if they intersect, we have a good shot
+        goodShot = glm::distance(newAsteroidPos, potentialLaserPos) < bulletRadius + asteroid->radius();
+        if (goodShot) break;
+    }
+    mCrossHairHit->visible = goodShot;
+
     for (unsigned int i = 0; i < mBullets.size(); i += 1) {
         Bullet *bullet = &mBullets[i];
         if (bullet->mLife <= 0) continue;
@@ -589,6 +619,7 @@ void Scene::draw()
     glDisable(GL_DEPTH_TEST);
 
     mCrossHair->draw();
+    mCrossHairHit->draw();
     mVelDisplayOutline->draw();
     mVelDisplayArrow->draw();
     mForwardVelArrow->draw();

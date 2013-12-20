@@ -138,7 +138,7 @@ private:
         Bullet() :
             PhysicsSphere(0.1f, 1.0f),
             mVel(0),
-            mRadius(0.02) {}
+            mRadius(0) {}
         DrawableInstance drawable;
         glm::vec3 mVel;
         float mRadius;
@@ -174,6 +174,7 @@ private:
     float timeUntilFire = 0;
     float maxTimeUntilFire = 0.2;
     float maxBulletLife = 1.5f;
+    float bulletRadius = 0.02f;
 
     float maxAsteroidRadius = 16;
     float minAsteroidRadius = 4;
@@ -198,6 +199,7 @@ private:
     Sprite *mVelDisplayOutline;
     Sprite *mVelDisplayArrow;
     Sprite *mCrossHair;
+    Sprite *mCrossHairHit;
     Sprite *mForwardVelArrow;
 
     Sprite *mFrontRadarOutline;

@@ -22,6 +22,8 @@ Sprite::Sprite(const SpriteSheet &spritesheet, const SpriteSheet::ImageInfo *ima
     scale.z = 1;
 
     rotation = 0;
+
+    visible = true;
 }
 
 Sprite::Sprite(const SpriteSheet &spritesheet, const std::string &name, const RenderContext &projectionAndView) :
@@ -31,6 +33,7 @@ Sprite::Sprite(const SpriteSheet &spritesheet, const std::string &name, const Re
 
 void Sprite::draw()
 {
+    if (!visible) return;
     mSpriteSheet.draw(mImage, mRenderContext);
 }
 

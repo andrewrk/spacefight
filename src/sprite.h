@@ -23,6 +23,7 @@ public:
     glm::vec3 pos;
     glm::vec3 scale;
     float rotation;
+    bool visible;
 
     int width() const;
     int height() const;
