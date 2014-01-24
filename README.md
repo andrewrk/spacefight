@@ -4,7 +4,7 @@ vaporware 3d space dogfighting simulator game
 
 ## Building
 
-Install [rucksack](https://github.com/superjoe30/rucksack).
+Install [rucksack](https://github.com/andrewrk/rucksack).
 
 Set up a build rule to run `rucksack bundle assets.json assets.bundle` as
 part of the build process.
