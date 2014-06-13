@@ -2,6 +2,8 @@
 
 vaporware 3d space dogfighting simulator game
 
+[YouTube Demo](https://www.youtube.com/watch?v=1bqlZaXzh4c)
+
 ## Building
 
 Install [rucksack](https://github.com/andrewrk/rucksack).
